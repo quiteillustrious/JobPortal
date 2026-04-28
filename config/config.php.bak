@@ -1,0 +1,155 @@
+<?php 
+
+$OAServer = "STUDENTPORTAL\TAUDATABASES";
+$OADatabase = "AppForGraduation";
+
+$ServerEnrolment = "STUDENTPORTAL\TAUDATABASES"; //MSI  WIN-K0I5ITAB6O4\MSSQLSERVER2012
+$DatabaseEnrolmentNC = "New_Curriculum";
+$DatabaseEnrolmentPC = "Princetech_Solutions";
+
+$RID = "1";
+
+$termID = 1063;
+$db="";
+$bloodTypes = array('O-','O+','A-','A+','B-','B+','AB-','AB+');
+
+
+
+$allowedExtFle = array("pdf");  // File type only allowed to be upload
+
+$Nationality["Country"]= array ("Afghanistan","Albania","Algeria","Argentina","","Australia","Austria","Bangladesh","Belgium","Bolivia","Botswana","Brazil","Bulgaria","Cambodia","Cameroon","Canada","Chile","China","Colombia *","Costa Rica","Croatia","Cuba","Czech Republic","Denmark","Dominican Republic","Ecuador","Egypt","El Salvador","England","","Estonia","Ethiopia","Fiji","Finland","France","","Germany","Ghana","Greece","Guatemala","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","","Israel","Italy","Jamaica","Japan","Jordan","Kenya","Kuwait","Laos","Latvia","Lebanon","Libya","Lithuania","Madagascar","Malaysia","Mali","Malta","Mexico","Mongolia","Morocco","Mozambique","Namibia","Nepal","Netherlands","","New Zealand","Nicaragua","Nigeria","Norway","Pakistan","Panama","Paraguay","Peru","Philippines","Poland","Portugal","Romania","Russia","Saudi Arabia","Scotland","Senegal","Serbia","Singapore","Slovakia","South Africa","South Korea","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Thailand","Tonga","Tunisia","Turkey","Ukraine","United Arab Emirates","(The) United Kingdom","(The) United States","Uruguay","Venezuela","Vietnam","Wales","","Zambia","Zimbabwe");
+$Nationality["Nationality"]=array("Afghan", "Albanian", "Algerian", "American", "Argentine", "Argentinian", "Australian", "Austrian", "Bangladeshi", "Belgian", "Bolivian", "Botswanan", "Brazilian", "Bulgarian", "Cambodian", "Cameroonian", "Canadian", "Chilean", "Chinese person", "Colombian", "Cost Rican", "Croat", "Cuban", "Czech person", "Dane", "Dominican", "Ecuadorian", "Egyptian", "Salvadoran", "Englishman", "Englishwoman", "Estonian", "Ethiopian", "Fijian", "Filipino", "Finn", "Frenchman", "Frenchwoman", "German", "Ghanaian", "Greek", "Guatemalan", "Haitian", "Honduran", "Hungarian", "Icelander", "Indian", "Indonesian", "Iranian", "Iraqi", "Irishman", "Irishwoman", "Israeli", "Italian", "Jamaican", "Japanese person", "Jordanian", "Kenyan", "Kuwaiti", "Laotain", "Latvian", "Lebanese", "Libyan", "Lithuanian", "Malagasy", "Malaysian", "Malian", "Maltese", "Mexican", "Mongolian", "Moroccan", "Mozambican", "Nambian", "Nepalese", "Dutchman", "Dutchwoman", "New Zealander", "Nicaraguan", "Nigerian", "Norwegian", "Pakistani", "Panamanian", "Paraguayan", "Peruvian", "Pole", "Portuguese person", "Romanian", "Russian", "Saudi (Arabian)", "Scot", "Senegalese person", "Serbian", "Singaporean", "Slovak", "South African", "Korean", "Spaniard", "Sri Lankan", "Sudanese person", "Swede", "Swiss person", "Syrian", "Taiwanese person", "Tajikistani", "Thai person", "Tongan", "Tunisian", "Turk", "Ukranian", "Emirati", "Brit", "Uruguayan", "Venezuelan", "Vietnamese person", "Welshman", "Welshwoman", "Zambian", "Zimbabwean"  );
+ 
+ //"Studtype"=>"ElemStudtype",
+$mapfield["application"] = array("TermID"=>"ElemTermID","DB"=>"ElemDB","StudentNo"=>"ElemStdNo"
+		 ,"Degree_Course"=>"ElemCurDegree"
+		 ,"Major"=>"ElemCurMajor","Sems"=>"ElemCurSemester"
+		 ,"School_Year"=>"ElemCurSchol"
+		 ,"LastName"=>"Elemlname"		 
+		 ,"Middlename"=>"Elemmname","FirstName"=>"Elemfname"
+		 ,"Gender"=>"ElemGender","CivilStatusID"=>"ElemCivStat"
+		 ,"DateOfBirth"=>"Elembday","PlaceOfBirth"=>"ElemBplace"
+		 ,"Res_Barangay"=>"ElemBrgy","Res_TownCity"=>"ElemMun"
+		 ,"Res_Province"=>"ElemProv","Email"=>"ElemEmail"
+		 ,"MobileNo"=>"ElemMobile","Guardian"=>"ElemGuardian"
+		 ,"Guardian_Address"=>"ElemGarAddress"
+		 ,"Prim_School"=>"ElemPriSchool","Prim_Year_Graduation"=>"ElemPriYearGrad"
+		 ,"Sec_School"=>"ElemSecSchool","Sec_Year_Graduation"=>"ElemSecYearGrad"
+		 ,"Date_Admitted"=>"ElemAdmitSchool","Admit_Year_Graduation"=>"ElemAdmitYearGrad");
+
+
+$mapfield["LstAppTable"] = array("AppNo"=>"AppGradID"
+								,"Student No."=>"StudentNo"
+								,"LastName"=>"LastName","FirstName"=>"FirstName"
+								,"Degree_Course"=>"Degree_Course"
+								,"Major"=>"Major"
+								,"Semister"=>"Sems"
+								,"School_Year"=>"School_Year");
+								
+								
+$mapfield["SheduleExam"]["designtable"]["label"] = array("schedID"=>""
+								,"exam_date"=>"Date Exam"
+								,"remarks"=>"Remarks"
+								,"max_app"=>"Maximum Applicant"
+								,"LinkExam"=>"Link Exam");
+								
+// Libraries Module
+
+$libraries[1]["Title"]= "Announcement Management"; 
+$libraries[1]["table"]= "OA_Announcement"; 
+$libraries[1]["fields"]= array("ancid","Announcement","AnnouncementCode","AnnouncementType"); 
+$libraries[1]["PrimaryKey"]= "ancid"; 
+$libraries[1]["ContinerValue"] = array("ancid"=>"","Announcement"=>"","AnnouncementCode"=>"","AnnouncementType"=>"");
+$libraries[1]["elements"]["alies"] = array("ancid"=>"cd","Announcement"=>"anc","AnnouncementCode"=>"ancc","AnnouncementType"=>"anct");
+$libraries[1]["elements"]["operation"]["save"]["name"] = array("cd"=>"txtaid","anc"=>"txtannc","ancc"=>"txtanccd","anct"=>"txtantp");
+$libraries[1]["elements"]["operation"]["save"]["label"] =array("cd"=>"id","anc"=>"Announcement","ancc"=>"Announcement Code","anct"=>"Announcement Type");
+$libraries[1]["elements"]["operation"]["save"]["types"] = array("cd"=>"text","anc"=>"text","ancc"=>"text","anct"=>"text");
+$libraries[1]["elements"]["operation"]["save"]["readonly"] = array("cd"=>"readonly","anc"=>"readonly","ancc"=>"readonly","anct"=>"readonly");
+$libraries[1]["elements"]["operation"]["save"]["required"] = array("cd"=>"no","anc"=>"yes","ancc"=>"yes","anct"=>"yes");
+$libraries[1]["elements"]["operation"]["save"]["show"] = array("cd"=>"no","anc"=>"yes","ancc"=>"yes","anct"=>"yes");
+$libraries[1]["tables"]["labels"] = array("ancid"=>"id","Announcement"=>"Announcement","AnnouncementCode"=>"Announcement Code","AnnouncementType"=>"Announcement Type");
+
+
+
+$libraries[2]["Title"]= "Instruction Management"; 
+$libraries[2]["table"]= "OA_Instructions"; 
+$libraries[2]["fields"]= array("InsID","Instruction"); 
+$libraries[2]["PrimaryKey"]= "InsID"; 
+$libraries[2]["ContinerValue"] = array("InsID"=>"","Instruction"=>"");
+$libraries[2]["elements"]["alies"] = array("InsID"=>"ids","Instruction"=>"inst");
+$libraries[2]["elements"]["operation"]["save"]["name"] = array("ids"=>"txtaid","inst"=>"txtinst");
+$libraries[2]["elements"]["operation"]["save"]["label"] =array("ids"=>"id","inst"=>"Instruction");
+$libraries[2]["elements"]["operation"]["save"]["types"] = array("ids"=>"text","inst"=>"text");
+$libraries[2]["elements"]["operation"]["save"]["readonly"] = array("ids"=>"readonly","inst"=>"readonly");
+$libraries[2]["elements"]["operation"]["save"]["required"] = array("ids"=>"no","inst"=>"yes");
+$libraries[2]["elements"]["operation"]["save"]["show"] = array("ids"=>"no","inst"=>"yes");
+$libraries[2]["tables"]["labels"] = array("InsID"=>"id","Instruction"=>"Instruction");
+
+
+
+$libraries[3]["Title"]= "Menu Management"; 
+$libraries[3]["table"]= "Sys_Menu"; 
+$libraries[3]["fields"]= array("MenID","Menu","MotherMenID","Description","Menucode","MenuLink","Arrangement","UnActive"); 
+$libraries[3]["PrimaryKey"]= "MenID"; 
+$libraries[3]["ContinerValue"] = array("MenID"=>"","Menu"=>"","MotherMenID"=>"","Description"=>"","MenuLink"=>"","Menucode"=>"","Arrangement"=>"","UnActive"=>"");
+$libraries[3]["elements"]["alies"] = array("MenID"=>"mid","Menu"=>"m","MotherMenID"=>"mm","Description"=>"d","MenuLink"=>"ml","Menucode"=>"mc","Arrangement"=>"a","UnActive"=>"u");
+$libraries[3]["elements"]["operation"]["save"]["name"] = array("mid"=>"txtmid","m"=>"txtm","mm"=>"txtmm","d"=>"txtd","ml"=>"txtml","mc"=>"txtmc","a"=>"txta","u"=>"txtu");
+$libraries[3]["elements"]["operation"]["save"]["label"] = array("mid"=>"ID","m"=>"Menu","mm"=>"MotherMenID","d"=>"Description","ml"=>"MenuLink","mc"=>"Menucode","a"=>"Arrangement","u"=>"Active");
+$libraries[3]["elements"]["operation"]["save"]["types"] = array("mid"=>"text","m"=>"text","mm"=>"text","d"=>"text","ml"=>"text","mc"=>"text","a"=>"text","u"=>"text");
+$libraries[3]["elements"]["operation"]["save"]["readonly"] = array("mid"=>"readonly","m"=>"readonly","mm"=>"readonly","d"=>"readonly","ml"=>"readonly","mc"=>"readonly","a"=>"readonly","u"=>"readonly");
+$libraries[3]["elements"]["operation"]["save"]["required"] = array("mid"=>"no","m"=>"yes","mm"=>"yes","d"=>"yes","ml"=>"yes","mc"=>"yes","a"=>"yes","u"=>"yes");
+$libraries[3]["elements"]["operation"]["save"]["show"] =  array("mid"=>"no","m"=>"yes","mm"=>"yes","d"=>"yes","ml"=>"yes","mc"=>"yes","a"=>"yes","u"=>"yes");
+$libraries[3]["tables"]["labels"] =  array("mid"=>"ID","m"=>"Menu","mm"=>"MotherMenID","d"=>"Description","ml"=>"MenuLink","mc"=>"Menucode","a"=>"Arrangement","u"=>"Active");
+
+
+$libraries[4]["Title"]= "Group Management"; 
+$libraries[4]["table"]= "Sys_Role"; 
+$libraries[4]["fields"]= array("RID","Role","Rolecode","UnActive"); 
+$libraries[4]["PrimaryKey"]= "RID"; 
+$libraries[4]["ContinerValue"] = array("RID"=>"","Role"=>"","Rolecode"=>"","UnActive"=>"");
+$libraries[4]["elements"]["alies"] = array("RID"=>"rid","Role"=>"r","Rolecode"=>"rc","UnActive"=>"u");
+$libraries[4]["elements"]["operation"]["save"]["name"] = array("rid"=>"txtrid","r"=>"txtr","rc"=>"txtrc","u"=>"txtu");
+$libraries[4]["elements"]["operation"]["save"]["label"] = array("rid"=>"ID","r"=>"Group","rc"=>"Grp Code","u"=>"Active");
+$libraries[4]["elements"]["operation"]["save"]["types"] = array("rid"=>"text","r"=>"text","rc"=>"text","u"=>"number");
+$libraries[4]["elements"]["operation"]["save"]["readonly"] =array("rid"=>"readonly","r"=>"readonly","rc"=>"readonly","u"=>"readonly");
+$libraries[4]["elements"]["operation"]["save"]["required"] = array("rid"=>"no","r"=>"yes","rc"=>"yes","u"=>"yes");
+$libraries[4]["elements"]["operation"]["save"]["show"] =  array("rid"=>"no","r"=>"yes","rc"=>"yes","u"=>"yes");
+$libraries[4]["tables"]["labels"] =  array("rid"=>"ID","r"=>"Group","rc"=>"Grp Code","u"=>"Active");
+
+
+$libraries[5]["Title"]= "User Account Management"; 
+$libraries[5]["table"]= "Sys_UserAccount"; 
+$libraries[5]["fields"]= array("UserID","EmailAddress","Password","VerificationCode","RID","IsActive"); 
+$libraries[5]["PrimaryKey"]= "UserID"; 
+$libraries[5]["ContinerValue"] = array("UserID"=>"","EmailAddress"=>"","Password"=>"","VerificationCode"=>"","RID"=>"","IsActive"=>"");
+$libraries[5]["elements"]["alies"] =  array("UserID"=>"u","EmailAddress"=>"e","Password"=>"p","VerificationCode"=>"v","RID"=>"r","IsActive"=>"i");
+$libraries[5]["elements"]["operation"]["save"]["name"] = array("u"=>"txtu","e"=>"txte","p"=>"txtp","v"=>"txtv","r"=>"txtr","i"=>"txti");
+$libraries[5]["elements"]["operation"]["save"]["label"] = array("u"=>"UserID","e"=>"EmailAddress","p"=>"Password","v"=>"VerificationCode","r"=>"RID","i"=>"Active");
+$libraries[5]["elements"]["operation"]["save"]["types"] =array("u"=>"text","e"=>"text","p"=>"password","v"=>"text","r"=>"text","i"=>"text");
+$libraries[5]["elements"]["operation"]["save"]["readonly"] =array("u"=>"readonly","e"=>"readonly","p"=>"readonly","v"=>"readonly","r"=>"readonly","i"=>"readonly");
+$libraries[5]["elements"]["operation"]["save"]["required"] = array("u"=>"no","e"=>"yes","p"=>"yes","v"=>"yes","r"=>"yes","i"=>"yes");
+$libraries[5]["elements"]["operation"]["save"]["show"] =  array("u"=>"no","e"=>"yes","p"=>"yes","v"=>"yes","r"=>"yes","i"=>"yes");
+$libraries[5]["tables"]["labels"] =  array("u"=>"UserID","e"=>"EmailAddress","p"=>"Password","v"=>"VerificationCode","r"=>"RID","i"=>"Active");
+
+
+$ApplSubmitMsg =" <br><br>
+				<div style='padding: 20px;
+							background-color: #0ca86e;
+							color: white;'>
+				 Your application for graduation is successfully submitted. <br>
+				 We would like to inform you that your application is subject to verification and evaluation. <br>
+				 You will be notified of your application status either in email or short messaging services (SMS).
+				 <br>
+				 Due to the large volume of applications that we receive, we would like to request you to keep patience till then.
+				 <br>Thank you and be safe!.
+				</div>
+				";
+/* $ApplSubmitMsg =" <br><br>
+				<div style='padding: 20px;
+							background-color: #0ca86e;
+							color: white;'>
+				  <strong>Thank you!</strong> Application successfuly submitted.<br>
+					You may now choose your schedule for your exam. Just click the dashboard menu.
+				</div>
+				";  */
+?>

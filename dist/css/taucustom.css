@@ -1,0 +1,126 @@
+/*!
+ *   Base on AdminLTE v3.2.0
+ *	 This CSS custom will set the default colors of the TAU website
+ *   Author: Colorlib
+ *   Website: AdminLTE.io <https://adminlte.io>
+ *   License: Open source - MIT <https://opensource.org/licenses/MIT>
+ */
+ 
+.btn-primary {
+	background-color: #07861f !important;
+	border-color: #17a2b8 !important;
+}
+
+.btn-primary:hover { 
+    background-color: #056613 !important; 
+    border-color: #17a2b8 !important; 
+}
+
+.card-primary.card-outline {
+	border-top: 3px solid #07861f !important;
+}
+
+a#clckdropdown.nav-link {
+	background-color: #07861f;
+    color: #ffffff;
+}
+
+a.brand-link {
+	background-color: #07861f;
+}
+
+span.brand-text.font-weight-light {
+	color: #ffffff;
+}
+
+/* Fullscreen Loading Overlay */
+        #loadingSpinner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6); /* Dark transparent background */
+            display: none; /* Initially hidden */
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            z-index: 9999; /* Ensures it stays above all content */
+        }
+
+        /* Dots Container */
+        .dot-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Animated Dots */
+        .dot {
+            width: 12px;
+            height: 12px;
+            margin: 0 5px;
+            background-color: white;
+            border-radius: 50%;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        /* Different animation delays for smooth effect */
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        .dot:nth-child(4) { animation-delay: 0.6s; }
+        .dot:nth-child(5) { animation-delay: 0.8s; }
+
+        /* Bounce + Grow + Color Animation */
+        @keyframes bounce {
+            0% { transform: translateY(0) scale(1); background-color: white; }
+            50% { transform: translateY(-15px) scale(1.2); background-color: #07861f; }
+            100% { transform: translateY(0) scale(1); background-color: white; }
+        }
+
+        /* Loading Text */
+        #loadingText {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+/* Right-side modal animation */
+.modal.right-modal .modal-dialog {
+    position: fixed;
+    right: 0;
+    top: 0;
+    margin: 0;
+    height: 100%;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.right-modal.show .modal-dialog {
+    transform: translateX(0);
+}
+
+.modal.right-modal .modal-content {
+    height: 100%;
+    border-radius: 0;
+}
+
+.notif-unread {
+    background: #e8f9e8;
+    border-left: 4px solid #28a745;
+}
+
+.notif-read {
+    background: #ffffff;
+    border-left: 4px solid #dee2e6;
+    opacity: 0.85;
+}
+
+.notif-item:hover {
+    background: #f1f1f1;
+    transition: 0.2s ease;
+}
+

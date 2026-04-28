@@ -1,0 +1,50 @@
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}
+
+body {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+[data-tooltip] {
+  position: relative; /* Needed to position the tooltip absolutely */
+}
+
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%; /* Position above the element */
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px; /* Space between button and tooltip */
+  padding: 0.60em 0.60em;
+  background: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+  font-weight: bold;
+}
+
+[data-tooltip]:hover::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% - 1px); /* Just touching the tooltip */
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: black; /* Arrow pointing down */
+}
+
+html, body {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: auto !important;
+}
+
+body.modal-open {
+  padding-right: 0 !important;
+}

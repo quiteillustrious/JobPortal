@@ -74,33 +74,10 @@ include "modals.php";
     <div class="wrapper ml-3 mr-3">
 
         <!-- ROW: Two Tables -->
-        <div class="row">
-
-            <!-- Publications Table -->
-            <div class="col-md-6">
-                <div class="card border border-success">
-                    <div class="card-header bg-success">
-                        <h5 class="mb-0">Publications</h5>
-                    </div>
-                    <div class="card-body p-0 table-responsive">
-                        <div style="max-height:380px; overflow-y:auto;">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-success" style="position:sticky; top:0; z-index:2;">
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Publication Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="publicationstableloader"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="">
 
             <!-- Positions Table -->
-            <div class="col-md-6">
+            <div class="">
                 <div class="card border border-success">
                     <div class="card-header bg-success">
                         <h5 class="mb-0">Positions</h5>
@@ -112,14 +89,12 @@ include "modals.php";
                                     <tr>
                                         <th>Position</th>
                                         <th>Office Assignment</th>
-                                        <th>Status</th>
-                                        <th>Summary</th>
+                                        <th>Publication Date</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="positionstableloader">
-                                    <td colspan="3" class="text-center font-weight-bold p-4">
-                                        Select a publication to load positions...
-                                    </td>
+
                                 </tbody>
                             </table>
                         </div>
@@ -143,9 +118,9 @@ include "modals.php";
 
     <script>
         DivLoader(
-            'publicationstableloader',
+            'positionstableloader',
             'backend/bk_amreviewattachments.php', {
-                request: 'fetchpublications'
+                request: 'fetchpositions'
             }
         );
 

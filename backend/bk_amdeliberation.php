@@ -135,20 +135,6 @@ switch ($request) {
             ORDER BY snap.AppliedDate
         ", "Select", array(intval($datavalue)));
 
-        $totalRemarked = 0;
-
-        foreach ($fetchapplicants as $app) {
-
-            $checkforremarked = execsqlSRS("
-                SELECT deci.[opdecision_id]
-                FROM [tbl_SnapshotOPDecision] deci
-                WHERE deci.[IsActive] = 0
-                    AND deci.[snap_id] = ?
-            ", "Select", array(intval($app['snap_id'])));
-
-            $totalRemarked += count($checkforremarked);
-        }
-
         $fetchposition = execsqlSRS("
             SELECT  pos.[pubpos_id]
                     ,pos.[position_title]
@@ -226,10 +212,8 @@ switch ($request) {
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Eligibility / NC</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Competency/ies</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Other Information (Skills / Hobbies / Performance / etc.)</th>
-            <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Other Positions being applied for</th>
-            <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Action<hr>
-                <div class='text-nowrap'>Remarked (" . ($totalRemarked ?? 0) . "/" . count($fetchapplicants) . ")</div>
-            </th>
+            <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>President's Remarks</th>
+            <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Action</th>
         </tr>
         ";
 
@@ -492,6 +476,7 @@ switch ($request) {
                             class='decision-radio'
                             id='decision_q_" . $snap_id . "'
                             data-userid='" . $user_id . "'
+                            data-tooltip='Qualified'
                             " . ($selectedDecision === 0 ? "checked" : "") . ">
                         Q
                     </label>
@@ -503,6 +488,7 @@ switch ($request) {
                             class='decision-radio'
                             id='decision_dq_" . $snap_id . "'
                             data-userid='" . $user_id . "'
+                            data-tooltip='Disqualified'
                             " . ($selectedDecision === 1 ? "checked" : "") . ">
                         DQ
                     </label>
@@ -577,6 +563,7 @@ switch ($request) {
         </div>";
 
         if ($rid == 1 || $rid == 3) {
+
             echo "
                 <div class='d-flex justify-content-center mt-3'>
                     <button

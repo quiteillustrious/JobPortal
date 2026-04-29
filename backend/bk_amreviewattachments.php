@@ -89,14 +89,21 @@ switch ($request) {
 			LEFT JOIN [tbl_Office] office
 			ON office.[office_id] = pos.[office_id]
 
-			WHERE pos.publication_id = ?
-
-			ORDER BY pos.position_title",
+			ORDER BY pos.position_title, pos.publication_id",
 			"Search",
-			array(intval($datavalue))
+			array()
 		);
 
 		foreach ($queryselect as $position) {
+
+			$getpubdate = execsqlSRS("
+                SELECT pub.[pubtitle_startdt], pub.[pubtitle_enddt]
+                FROM [tbl_PublicationPosition] pos
+
+                LEFT JOIN [tbl_Publication] pub
+                ON pub.publication_id = pos.publication_id
+                WHERE pos.pubpos_id = ?
+                ", "Select", array($position["pubpos_id"]));
 
 			$appoint = htmlspecialchars($position["appoint_desc"]);
 			$color = strtolower($position["color_desc"] ?? 'secondary');
@@ -105,7 +112,11 @@ switch ($request) {
 				  data-datavalue='" . htmlspecialchars($position["pubpos_id"]) . "'>";
 			echo "<td class='font-weight-bold'>" . htmlspecialchars($position["position_title"]) . "</td>";
 			echo "<td class='font-weight-bold'>" . htmlspecialchars($position["office_desc"]) . "</td>";
-			echo "<td><span class='badge badge-$color p-2'>$appoint</span></td>";
+			echo "<td class='font-weight-bold'>"
+				. date("F j, Y", strtotime($getpubdate[0]["pubtitle_startdt"]))
+				. " - "
+				. date("F j, Y", strtotime($getpubdate[0]["pubtitle_enddt"]))
+				. "</td>";
 			echo "<td>
 				<button class='btn btn-sm btn-info'
 						id='positionsummary_" . htmlspecialchars($position["pubpos_id"]) . "'
@@ -114,6 +125,17 @@ switch ($request) {
 						data-tooltip='View Summary'>
 					<i class='fa-solid fa-rectangle-list'></i>
 				</button>
+                <button class='btn btn-sm btn-info'
+                        id='view_position_" . htmlspecialchars($position["pubpos_id"]) . "'
+                        data-datavalue='" . htmlspecialchars($position["pubpos_id"]) . "'
+                        data-backendurl='backend/bk_homepage.php'
+                        data-backendrequest='viewpositiondetailsuser'
+                        data-openmodal='#attachmentmodal'
+                        data-openmodallabel='View Position - " . htmlspecialchars($position["position_title"]) . "'
+                        data-openmodalbody='#attachmentmodalcontent'
+                        data-tooltip='View Position'>
+                    <i class='fa-solid fa-eye'></i>
+                </button>
 			</td>";
 			echo "</tr>";
 		}
@@ -191,15 +213,7 @@ switch ($request) {
         <tr class='bg-success'>
             <th colspan='10' style='position: sticky; top: 0; z-index: 20;'>
                 <div class='font-weight-bold ml-2'>
-                    <span
-                        id='view_position_" . $fetchposition[0]['pubpos_id'] . "'
-                            data-datavalue='" . $fetchposition[0]['pubpos_id'] . "'
-                            data-backendurl='backend/bk_hrpublications.php'
-                            data-backendrequest='viewpositiondetails'
-                            data-openmodal='#attachmentmodal'
-                            data-openmodallabel='View Position - " . $fetchposition[0]['position_title'] . "'
-                            data-openmodalbody='#attachmentmodalcontent'
-                            style='cursor: pointer;'>
+                    <span>
                         Applicants for " . $fetchposition[0]['position_title'] . "
                     </span>
                 </div>

@@ -23,13 +23,15 @@ $profilepic = execsqlSRS("
     <!-- Sidebar -->
     <div class="sidebar">
         <!-- Sidebar user panel (optional) -->
-        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-            <div class="image">
-                <img src="<?php echo isset($profilepic[0]['att_filepath']) ? $profilepic[0]['att_filepath'] : 'dist/img/tau-logo.png'; ?>" class="img-circle elevation-2" alt="User Image">
-            </div>
-            <div class="info">
-                <!-- Display the user info: Email address and role ID -->
-                <a href="#" class="d-block"><?php echo $FirstName; ?></a>
+        <div id="profilepictrigger" style="cursor:pointer;">
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image">
+                    <img src="<?php echo isset($profilepic[0]['att_filepath']) ? $profilepic[0]['att_filepath'] : 'dist/img/tau-logo.png'; ?>" class="img-circle elevation-2" alt="User Image">
+                </div>
+                <div class="info">
+                    <!-- Display the user info: Email address and role ID -->
+                    <?php echo "Hello, " . explode(' ', $FirstName)[0] . "!"; ?>
+                </div>
             </div>
         </div>
 
@@ -77,7 +79,6 @@ $profilepic = execsqlSRS("
                                     </p>
                                 </a>
                                 <ul class='nav nav-treeview' id='{$menuItem["MenID"]}'>";
-
 
                     $childMenus = execsqlSRS("SELECT m.*
 								FROM Sys_Menu m

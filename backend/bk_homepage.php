@@ -1496,7 +1496,7 @@ switch ($request) {
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Work Experience</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Trainings</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Eligibility / NC</th>
-            <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Competency</th>
+            <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Competency/ies</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Other Information (Skills / Hobbies / Performance / etc.)</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Other Positions being applied for</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Action<hr>

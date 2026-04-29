@@ -68,7 +68,7 @@ date_default_timezone_set('Asia/Manila');
     }
 </style>
 
-<div class="container pt-4">
+<div class="container pt-4 pb-2">
 
     <h3 class="mb-4 text-success font-weight-bold">TAU Job Portal</h3>
 
@@ -89,9 +89,30 @@ date_default_timezone_set('Asia/Manila');
                     <li>
                         TAU does not discriminate in the selection of employees based on the aforementioned pursuant to the Equal Opportunities for Employment Principle (EOP).
                     </li>
-                    <li>Submit applications before deadline.</li>
-                    <li>Ensure documents are complete.</li>
-                    <li>Check updates regularly.</li>
+                    <li>Ensure that all the following documents are properly reviewed and submitted on or before the deadline:</li>
+                    <ul>
+                        <li>
+                            Application Letter
+                        </li>
+                        <li>
+                            Fully accomplished Personal Data Sheet (PDS) with Work Experience Sheet and recent passport-sized or unfiltered digital picture (CS Form No. 212, Revised 2025); digitally signed or electronically signed;
+                        </li>
+                        <li>
+                            Copy of Performance Rating in the last rating period (if applicable);
+                        </li>
+                        <li>
+                            Copy of proof of eligibility/rating/license;
+                        </li>
+                        <li>
+                            Copy of Transcript of Records;
+                        </li>
+                        <li>
+                            Copy of supporting documents or other credentials (Certificate of Attendance/Participation in Trainings/Seminars, Service Record/Certificate of Employment, Skills Certificate, Certificate of Recognition/Merit)
+                        </li>
+                    </ul>
+                    <li class="font-weight-bold">
+                        APPLICATIONS WITH INCOMPLETE DOCUMENTS SHALL NOT BE ENTERTAINED.
+                    </li>
                 </ul>
             </div>
         </div>

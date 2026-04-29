@@ -21,50 +21,6 @@ $currentdt = date("Y-m-d H:i:s");
 
 switch ($request) {
 
-    case "fetchpublications":
-
-        $queryselect = execsqlSRS(
-            "
-            SELECT  pub.[publication_id]
-                    ,pub.[pubtitle_name]
-                    ,pub.[pubtitle_startdt]
-                    ,pub.[pubtitle_enddt]
-                    ,stat.[pubstatus_desc]
-                    ,c.[color_desc]
-                    ,pub.[UserID]
-                    ,pub.[created_at]
-                    ,pub.[IsActive]
-
-            FROM [tbl_Publication] pub
-
-            LEFT JOIN [tbl_PublicationStatus] stat
-            ON stat.pubstatus_id = pub.pubstatus_id
-
-            LEFT JOIN [tbl_Colors] c
-            ON c.color_id = stat.color_id
-
-            WHERE pub.[pubstatus_id] = 4
-
-            ORDER BY pub.publication_id DESC",
-            "Search",
-            array()
-        );
-
-        foreach ($queryselect as $publication) {
-
-            $status = htmlspecialchars($publication["pubstatus_desc"]);
-            $color = strtolower($publication["color_desc"] ?? 'secondary');
-
-            echo "<tr id='fetchposition_" . htmlspecialchars($publication["publication_id"]) . "'
-				  data-datavalue='" . htmlspecialchars($publication["publication_id"]) . "'>";
-            echo "<td class='font-weight-bold'>" . htmlspecialchars($publication["pubtitle_name"]) . "</td>";
-            echo "<td>" . htmlspecialchars($publication["pubtitle_startdt"]) . " - " . htmlspecialchars($publication["pubtitle_enddt"]) . "</td>";
-            echo "<td><span class='badge badge-$color p-2'>$status</span></td>";
-            echo "</tr>";
-        }
-
-        break;
-
     case "fetchpositions":
 
         $queryselect = execsqlSRS(
@@ -90,14 +46,21 @@ switch ($request) {
     LEFT JOIN [tbl_Office] office
     ON office.[office_id] = pos.[office_id]
 
-	WHERE pos.publication_id = ?
-
-	ORDER BY pos.position_title",
+	ORDER BY pos.position_title, pos.publication_id",
             "Search",
             array(intval($datavalue))
         );
 
         foreach ($queryselect as $position) {
+
+            $getpubdate = execsqlSRS("
+                SELECT pub.[pubtitle_startdt], pub.[pubtitle_enddt]
+                FROM [tbl_PublicationPosition] pos
+
+                LEFT JOIN [tbl_Publication] pub
+                ON pub.publication_id = pos.publication_id
+                WHERE pos.pubpos_id = ?
+                ", "Select", array($position["pubpos_id"]));
 
             $appoint = htmlspecialchars($position["appoint_desc"]);
             $color = strtolower($position["color_desc"] ?? 'secondary');
@@ -106,7 +69,11 @@ switch ($request) {
 				  data-datavalue='" . htmlspecialchars($position["pubpos_id"]) . "'>";
             echo "<td class='font-weight-bold'>" . htmlspecialchars($position["position_title"]) . "</td>";
             echo "<td class='font-weight-bold'>" . htmlspecialchars($position["office_desc"]) . "</td>";
-            echo "<td><span class='badge badge-$color p-2'>$appoint</span></td>";
+            echo "<td class='font-weight-bold'>"
+                . date("F j, Y", strtotime($getpubdate[0]["pubtitle_startdt"]))
+                . " - "
+                . date("F j, Y", strtotime($getpubdate[0]["pubtitle_enddt"]))
+                . "</td>";
             echo "<td>
 				<button class='btn btn-sm btn-info'
 						id='positionsummary_" . htmlspecialchars($position["pubpos_id"]) . "'
@@ -115,6 +82,17 @@ switch ($request) {
 						data-tooltip='View Summary'>
 					<i class='fa-solid fa-rectangle-list'></i>
 				</button>
+                <button class='btn btn-sm btn-info'
+                        id='view_position_" . htmlspecialchars($position["pubpos_id"]) . "'
+                        data-datavalue='" . htmlspecialchars($position["pubpos_id"]) . "'
+                        data-backendurl='backend/bk_homepage.php'
+                        data-backendrequest='viewpositiondetailsuser'
+                        data-openmodal='#attachmentmodal'
+                        data-openmodallabel='View Position - " . htmlspecialchars($position["position_title"]) . "'
+                        data-openmodalbody='#attachmentmodalcontent'
+                        data-tooltip='View Position'>
+                    <i class='fa-solid fa-eye'></i>
+                </button>
 			</td>";
             echo "</tr>";
         }
@@ -246,7 +224,7 @@ switch ($request) {
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Work Experience</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Trainings</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Eligibility / NC</th>
-            <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Competency</th>
+            <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Competency/ies</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Other Information (Skills / Hobbies / Performance / etc.)</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Other Positions being applied for</th>
             <th style='position: sticky; top: 40px; z-index: 10;' class='text-center'>Action<hr>
@@ -314,24 +292,6 @@ switch ($request) {
                 WHERE [snap_id] = ? AND [UserID] = ?
                 ORDER BY [comp_desc]
             ", "Select", array($snap_id, $user_id));
-
-            /*
-            $fetchsectors = execsqlSRS("
-                SELECT
-                    CASE question_code
-                        WHEN 'q40a' THEN 'Indigenous Group'
-                        WHEN 'q40b' THEN 'Person with Disability'
-                        WHEN 'q40c' THEN 'Solo Parent'
-                        WHEN 'q40d' THEN 'Pregnant'
-                        WHEN 'q40e' THEN 'Senior Citizen'
-                    END AS tag_label
-                FROM tbl_SnapshotAnswers
-                WHERE snap_id = ?
-                    AND UserID = ?
-                    AND answer = 'Yes'
-                    AND question_code IN ('q40a','q40b','q40c','q40d','q40e')
-            ", "Select", array($snap_id, $user_id));
-            */
 
             $personal = "<span class='section-title'>" . $fullName . "</span>";
 
@@ -482,14 +442,6 @@ switch ($request) {
             }
             $comp_html .= "</ul>";
 
-            //Sector
-            /*
-            $sector_html = "";
-            foreach ($fetchsectors as $s) {
-                $sector_html .= "<span class='badge-tag'>" . $s['tag_label'] . "</span> ";
-            }
-                */
-
             echo "
             <tr>
                 <td>" . $i . "</td>
@@ -509,103 +461,150 @@ switch ($request) {
                 <td>" . $comp_html . "</td>
                 <td></td>
                 <td>";
+
+            $delremarks = execsqlSRS("
+                SELECT [snap_id]
+                        ,[UserID]
+                        ,[IsQual]
+                        ,[remarks]
+                        ,[remarks_by]
+                        ,[remarks_at]
+                FROM [tbl_SnapshotDelRem]
+                WHERE [snap_id] = ?
+                ", "Select", array(
+                intval($snap_id)
+            ));
+
+            $selectedDecision = null;
+            $existingRemarks = '';
+
+            if (!empty($delremarks)) {
+                $selectedDecision = isset($delremarks[0]['IsQual']) ? intval($delremarks[0]['IsQual']) : null;
+                $existingRemarks = $delremarks[0]['remarks'] ?? '';
+            }
+
             if ($rid == 1 || $rid == 3) {
                 echo "
-
                     <label style='margin-right:10px; cursor:pointer;'>
                         <input type='radio'
                             name='decision_" . $snap_id . "'
-                            value='Pass'
+                            value='0'
                             class='decision-radio'
-                            id='decision_" . $snap_id . "'
-                            data-tooltip='Qualified'>
+                            id='decision_q_" . $snap_id . "'
+                            data-userid='" . $user_id . "'
+                            " . ($selectedDecision === 0 ? "checked" : "") . ">
                         Q
                     </label>
 
                     <label style='cursor:pointer;'>
                         <input type='radio'
                             name='decision_" . $snap_id . "'
-                            value='DQ'
+                            value='1'
                             class='decision-radio'
-                            id='decision_" . $snap_id . "'
-                            data-tooltip='Disqualified'>
+                            id='decision_dq_" . $snap_id . "'
+                            data-userid='" . $user_id . "'
+                            " . ($selectedDecision === 1 ? "checked" : "") . ">
                         DQ
                     </label>
 
-                    <div id='hrremarks_box_" . $snap_id . "' style='display:none; margin-top:6px;'>
-                        <textarea
-                            name='hrremarks_" . $snap_id . "'
-                            class='form-control form-control-sm'
-                            rows='3'
-                            placeholder='Enter remarks here...'
-                            ></textarea>
-                    </div>
+                    <div id='hrremarks_box_" . $snap_id . "'
+                        style='display:" . ($selectedDecision === 1 ? "block" : "none") . "; margin-top:6px;'>
 
-                    <div>
-                        <button
-                            type='button'
-                            class='btn btn-sm btn-success d-inline-flex align-items-center mt-2'
-                            id='hrdelremdecision_" . $snap_id . "'
-                            data-pubposid='" . $pubpos_id . "'
-                            data-snapid='" . $snap_id . "'
-                            data-userid='" . $user_id . "'
-                            data-remarksby='" . $userid . "'
-                            >
-                            <span class='text-nowrap'>Submit Decision</span>
-                        </button>
-                    </div>";
+                        <select
+                            name='hrremarks_" . $snap_id . "'
+                            class='form-control form-control-sm'>
+                            <option value=''>Select remarks...</option><hr>";
+
+
+                $remarkLib = execsqlSRS("
+                    SELECT [snapdelremlib_id]
+                            ,[snapdelremlib_desc]
+
+                    FROM [tbl_SnapshotDelRemLib]
+                    ", "Select", array());
+
+                foreach ($remarkLib as $lib) {
+                    $selected = ($existingRemarks == $lib['snapdelremlib_desc']) ? "selected" : "";
+                    echo "<option value='" . htmlspecialchars($lib['snapdelremlib_desc'], ENT_QUOTES) . "' $selected>"
+                        . htmlspecialchars($lib['snapdelremlib_desc']) .
+                        "</option>";
+                }
+
+                echo "
+                        </select>
+                    </div>
+                    ";
             } else {
                 echo "
-                        <div class=''>
-                            <label for='commremarks_" . $snap_id . "'>Remarks</label>
-                            <textarea
-                                class='form-control'
-                                id='commremarks_" . $snap_id . "'
-                                name='commremarks_" . $snap_id . "'
-                                rows='3'
-                                placeholder='Enter remarks here...'></textarea>
-                        </div>
+                        <div class='text-center'>
+                            <div class='font-weight-bold'>Remarks:</div>
+                            <div>";
 
-                        <div>
-                            <button
-                                class='btn btn-success btn-sm mt-2'
-                                type='button'
-                                id='commdelremdecision_" . $snap_id . "'
-                                data-pubposid='" . $pobpos_id . "'
-                                data-snapid='" . $snap_id . "'
-                                data-userid='" . $user_id . "'
-                                data-remarksby='" . $userid . "'
-                                >
-                                <span class='text-nowrap'>Submit Remarks</span>
-                            </button>
+                if (!empty($delremarks)) {
+                    $isQual = $delremarks[0]['IsQual'];
+                    $remarks = $delremarks[0]['remarks'];
+
+                    if ($isQual == 0) {
+                        echo "<div class='text-success font-weight-bold'>Qualified</div>";
+                    } else {
+                        echo "<div class='text-danger font-weight-bold'>Disqualified</div>";
+
+                        if (!empty($remarks)) {
+                            echo htmlspecialchars($remarks);
+                        }
+                    }
+                } else {
+                    echo "<div class='text-danger'>No Remarks</div>";
+                }
+
+                echo "
+                            </div>
                         </div>
                     ";
             }
             echo "
                 </td>
             </tr>
+
             ";
 
             $i++;
         }
 
-        echo "</table>
-        </div>
+        echo "
 
+            </table>
+        </div>";
+
+        if ($rid == 1 || $rid == 3) {
+            echo "
+                <div class='d-flex justify-content-center mt-3'>
+                    <button
+                        type='button'
+                        class='btn btn-success d-inline-flex align-items-center mt-2'
+                        id='delibdecision_submit'
+                        data-datavalue='" . $datavalue . "'
+                        >
+                        <span class='text-nowrap'>Submit Decisions <i class='fa-solid fa-arrow-right-to-bracket'></i></span>
+                    </button>
+                </div>";
+        }
+
+        echo "
         <script>
         document.addEventListener('change', function(e) {
 
             if (e.target.classList.contains('decision-radio')) {
 
                 let fullId = e.target.id;
-                let id = fullId.replace('decision_', '');
+                let id = fullId.replace('decision_q_', '').replace('decision_dq_', '');
                 let value = e.target.value;
 
                 let box = document.getElementById('hrremarks_box_' + id);
 
                 if (!box) return;
 
-                if (value === 'DQ') {
+                if (value === '1') {
                     box.style.display = 'block';
                 } else {
                     box.style.display = 'none';
@@ -615,99 +614,78 @@ switch ($request) {
                 }
             }
         });
-
-        $(document).off('click', '[id^=\'opdecisiontohr_\']').on('click', '[id^=\'opdecisiontohr_\']', function() {
-
-        var snapid = $(this).data('snapid');
-        var pubposid = $(this).data('pubposid');
-        var userid = $(this).data('userid');
-
-        var decisionvalue = $('#opdecision_' + snapid).val();
-
-        $.ajax({
-            url: 'backend/bk_homepage.php',
-            method: 'POST',
-            dataType: 'json',
-
-            data: {
-            request: 'submitopdecision',
-            datavalue: decisionvalue,
-            snapid: snapid,
-            pubposid: pubposid,
-            userid: userid,
-            remarksby: UserInfo['UserID']
-            },
-
-            beforeSend: function() {
-            $('#loadingSpinner').css('display', 'flex').hide().fadeIn(200);
-            },
-
-            success: function(dataResult) {
-
-            $('#loadingSpinner').fadeOut(200);
-
-            if (dataResult.status === 'success') {
-
-                Swal.fire({
-                title: 'Success!',
-                text: dataResult.message,
-                icon: 'success',
-                confirmButtonText: 'OK',
-                scrollbarPadding: false
-                });
-
-                $.ajax({
-                url: 'backend/bk_homepage.php',
-                method: 'POST',
-                data: {
-                    request: 'fetchapplicants',
-                    datavalue: pubposid,
-                    userid: UserInfo['UserID'],
-                    rid: UserInfo['RID']
-                },
-                success: function(response) {
-                    $('#xlmodalcontent').html(response);
-                },
-                error: function(xhr) {
-                    console.error('Fetch error:', xhr.responseText);
-                    Swal.fire('Error', 'Failed to reload applicants', 'error');
-                }
-                });
-
-            } else {
-                Swal.fire({
-                title: 'Oops!',
-                text: dataResult.message || 'Unknown error occurred',
-                icon: 'error',
-                confirmButtonText: 'I see!',
-                scrollbarPadding: false
-                });
-            }
-            },
-
-            error: function(xhr, status, error) {
-
-            $('#loadingSpinner').fadeOut(200);
-
-            console.error('AJAX Error:', {
-                status: status,
-                error: error,
-                response: xhr.responseText
-            });
-
-            Swal.fire({
-                title: 'Server Error',
-                text: 'Something went wrong while submitting. Please try again.',
-                icon: 'error',
-                confirmButtonText: 'OK',
-                scrollbarPadding: false
-            });
-            }
-        });
-
-        });
         </script>
 
         ";
+        break;
+
+    case "save_delib_decision":
+
+        $payload = isset($_POST['payload']) ? json_decode($_POST['payload'], true) : [];
+
+        if (empty($payload)) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "No data received."
+            ]);
+            exit;
+        }
+
+        $errors = [];
+
+        foreach ($payload as $row) {
+
+            $snap_id  = intval($row['snap_id'] ?? 0);
+            $decision   = isset($row['decision']) ? intval($row['decision']) : null;
+            $remarks  = trim($row['remarks'] ?? '');
+            $user_id   = intval($row['user_id'] ?? 0);
+
+            if ($decision === null) {
+                $errors[] = "Missing decision for Snap ID: $snap_id";
+                continue;
+            }
+
+            if ($decision === 1 && $remarks === '') {
+                $errors[] = "Remarks required for Disqualified Snap ID: $snap_id";
+                continue;
+            }
+
+            $check = execsqlSRS("
+            SELECT snap_id
+            FROM tbl_SnapshotDelRem
+            WHERE snap_id = ?
+        ", "Select", array($snap_id));
+
+            if (!empty($check)) {
+
+                execsqlSRS("
+                UPDATE tbl_SnapshotDelRem
+                SET IsQual = ?, remarks = ?, remarks_at = ?, UserID = ?, remarks_by = ?, IsActive = '0'
+                WHERE snap_id = ?
+            ", "Update", array($decision, $remarks, $currentdt, $user_id, $userid, $snap_id));
+            } else {
+
+                execsqlSRS("
+                INSERT INTO tbl_SnapshotDelRem
+                    (snap_id, IsQual, remarks, remarks_at, UserID, remarks_by, IsActive)
+                VALUES (?, ?, ?, ?, ?, ?, '0')
+            ", "Insert", array($snap_id, $decision, $remarks, $currentdt, $user_id, $userid));
+            }
+        }
+
+        if (!empty($errors)) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Validation failed.",
+                "errors" => $errors
+            ]);
+            exit;
+        }
+
+        echo json_encode([
+            "status" => "success",
+            "message" => "All decisions saved successfully."
+        ]);
+
         break;
 }

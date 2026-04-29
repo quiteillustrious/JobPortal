@@ -68,36 +68,13 @@ include "modals.php";
     </div>
   </section>
 
-  <div class="wrapper ml-3 mr-3 mt-3">
+  <div class="wrapper ml-3 mr-3">
 
     <!-- ROW: Two Tables -->
-    <div class="row">
-
-      <!-- Publications Table -->
-      <div class="col-md-6">
-        <div class="card border border-success">
-          <div class="card-header bg-success">
-            <h5 class="mb-0">Publications</h5>
-          </div>
-          <div class="card-body p-0 table-responsive">
-            <div style="max-height:280px; overflow-y:auto;">
-              <table class="table table-hover mb-0">
-                <thead class="table-success" style="position:sticky; top:0; z-index:2;">
-                  <tr>
-                    <th>Title</th>
-                    <th>Publication Date</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="publicationstableloader"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="">
 
       <!-- Positions Table -->
-      <div class="col-md-6">
+      <div class="">
         <div class="card border border-success">
           <div class="card-header bg-success">
             <h5 class="mb-0">Positions</h5>
@@ -109,20 +86,19 @@ include "modals.php";
                   <tr>
                     <th>Position</th>
                     <th>Office Assignment</th>
-                    <th>Status</th>
-                    <th>Summary</th>
+                    <th>Publication Date</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody id="positionstableloader">
-                  <td colspan="3" class="text-center font-weight-bold p-4">
-                    Select a publication to load positions...
-                  </td>
+
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- ROW: Applicants Container -->
@@ -139,9 +115,9 @@ include "modals.php";
 
   <script>
     DivLoader(
-      'publicationstableloader',
+      'positionstableloader',
       'backend/bk_amdeliberation.php', {
-        request: 'fetchpublications'
+        request: 'fetchpositions'
       }
     );
 
@@ -201,5 +177,129 @@ include "modals.php";
         }
       });
 
+    });
+
+    $(document).off('click', '#delibdecision_submit').on('click', '#delibdecision_submit', function(e) {
+
+      e.stopPropagation();
+
+      var fetchdata = $(this);
+      var datavalue = fetchdata.data("datavalue");
+
+      Swal.fire({
+        title: "Submit decisions?",
+        text: "This will save all deliberation decisions of this position.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Yes, submit!",
+        cancelButtonText: "Cancel",
+        reverseButtons: true,
+        scrollbarPadding: false
+      }).then((result) => {
+
+        if (result.isConfirmed) {
+
+          let payload = [];
+
+          $('.decision-radio:checked').each(function() {
+
+            let fullId = $(this).attr('id');
+            let snap_id = fullId.replace('decision_q_', '').replace('decision_dq_', '');
+
+            let decision = $(this).val();
+
+            let remarks = $("select[name='hrremarks_" + snap_id + "']").val() || '';
+
+            let user_id = $(this).data('userid');
+
+            payload.push({
+              snap_id: snap_id,
+              decision: decision,
+              remarks: remarks,
+              user_id: user_id
+            });
+          });
+
+          alert(JSON.stringify(payload, null, 2));
+
+          $.ajax({
+            url: "backend/bk_amdeliberation.php",
+            method: "POST",
+            data: {
+              request: "save_delib_decision",
+              payload: JSON.stringify(payload),
+              datavalue: datavalue,
+              userid: UserInfo["UserID"]
+            },
+
+            beforeSend: function() {
+              $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+            },
+
+            success: function(dataResult) {
+              $("#loadingSpinner").fadeOut(200, function() {
+                $("#loadingSpinner").css("display", "none");
+              });
+
+              let res;
+              try {
+                res = typeof dataResult === "object" ? dataResult : JSON.parse(dataResult);
+              } catch (e) {
+                console.error("Invalid JSON:", dataResult);
+                Swal.fire("Error", "Invalid server response.", "error");
+                return;
+              }
+
+              if (res.status === 'success') {
+                Swal.fire({
+                  title: "Saved!",
+                  text: res.message,
+                  icon: "success",
+                  confirmButtonText: "OK",
+                  scrollbarPadding: false
+                });
+
+                $.ajax({
+                  url: 'backend/bk_amdeliberation.php',
+                  method: "POST",
+                  data: {
+                    request: "fetchapplicants",
+                    datavalue: datavalue,
+                    userid: UserInfo["UserID"],
+                    rid: UserInfo["RID"]
+                  },
+
+                  success: function(response) {
+                    $("#applicants-container").html(response);
+                  }
+                });
+
+              } else {
+                let errorText = res.message;
+
+                if (res.errors && res.errors.length > 0) {
+                  errorText += "\n\n" + res.errors.join("\n");
+                }
+
+                Swal.fire({
+                  title: "Oops!",
+                  text: errorText,
+                  icon: "error",
+                  confirmButtonText: "I see!",
+                  scrollbarPadding: false
+                });
+              }
+            },
+
+            error: function(xhr, status, error) {
+              $("#loadingSpinner").fadeOut(200, function() {
+                $("#loadingSpinner").css("display", "none");
+              });
+              console.error("Error occurred:", error);
+            }
+          });
+
+        }
+      });
     });
   </script>

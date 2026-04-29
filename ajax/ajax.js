@@ -2731,6 +2731,7 @@ $(document).off('click', '#view_attachment').on('click', '#view_attachment', fun
 
 //View Position Details
 $(document).off('click', '[id^="view_position_"]').on('click', '[id^="view_position_"]', function(e) {
+    e.stopPropagation();
     var fetchdata = $(this);
 
     $.ajax({

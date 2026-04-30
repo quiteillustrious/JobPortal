@@ -40,19 +40,25 @@ switch ($request) {
             FROM [tbl_Notifications]
             WHERE [UserID] = ?
             AND [IsActive] = 0
+            ORDER BY [notif_id] DESC
         ", "Select", [intval($userid)]);
 
-        foreach ($fetchnotif as $n) {
+        if (!$fetchnotif) {
+            echo "<div class='text-center text-danger font-weight-bold'>No new notifications...</div>";
+            exit;
+        } else {
 
-            $isUnread = ($n['IsRead'] == 1);
+            foreach ($fetchnotif as $n) {
 
-            $class = $isUnread ? "notif-unread" : "notif-read";
+                $isUnread = ($n['IsRead'] == 1);
 
-            $badge = $isUnread
-                ? "<span class='badge badge-success ml-2'>NEW</span>"
-                : "";
+                $class = $isUnread ? "notif-unread" : "notif-read";
 
-            echo "
+                $badge = $isUnread
+                    ? "<span class='badge badge-success ml-2'>NEW</span>"
+                    : "";
+
+                echo "
                 <div class='notif-item $class'
                     id='readnotif'
                     data-datavalue='" . $n['notif_id'] . "'
@@ -63,6 +69,7 @@ switch ($request) {
                     <small>{$n['notif_message']}</small>
                 </div>
             ";
+            }
         }
 
         break;

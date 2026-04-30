@@ -2,14 +2,20 @@
 date_default_timezone_set('Asia/Manila');
 
 $profilepic = execsqlSRS("
-        SELECT att.[att_filepath]
-        FROM [tbl_ProfUserDetails] userdet
+    SELECT TOP 1 att.att_filepath
+    FROM tbl_ProfUserDetails userdet
+    LEFT JOIN tbl_Attachment att
+        ON att.attach_id = userdet.profile_pic
+    WHERE userdet.UserID = ?
+", "Select", array(intval($UserID)));
 
-        LEFT JOIN [tbl_Attachment] att
-        ON att.[attach_id] = userdet.[profile_pic]
+$baseURL = '/JobPortal/';
 
-        WHERE userdet.[UserID] = ?
-        ", "Select", array(intval($UserID)));
+$img = $baseURL . 'dist/img/tau-logo.png';
+
+if (!empty($profilepic[0]['att_filepath'])) {
+    $img = $baseURL . str_replace('../', '', $profilepic[0]['att_filepath']);
+}
 ?>
 
 <!-- Main Sidebar Container -->
@@ -23,10 +29,10 @@ $profilepic = execsqlSRS("
     <!-- Sidebar -->
     <div class="sidebar">
         <!-- Sidebar user panel (optional) -->
-        <div id="profilepictrigger" style="cursor:pointer;">
+        <div id="profilepictrigger" data-datavalue="<?php echo $UserID; ?>" data-openmodallabel="Update Profile Picture" style="cursor:pointer;">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="image">
-                    <img src="<?php echo isset($profilepic[0]['att_filepath']) ? $profilepic[0]['att_filepath'] : 'dist/img/tau-logo.png'; ?>" class="img-circle elevation-2" alt="User Image">
+                <div class="avatar-circle ml-2">
+                    <img src="<?php echo $img; ?>" alt="User Image">
                 </div>
                 <div class="info">
                     <!-- Display the user info: Email address and role ID -->

@@ -3062,3 +3062,162 @@ $(document).off('click', '[id^="viewprofile_"]').on('click', '[id^="viewprofile_
     });
 });
 //View Profile -- End
+
+//Profile Picture Management
+$(document).off('click', '#profilepictrigger').on('click', '#profilepictrigger', function(e) {
+    e.stopPropagation();
+    var fetchdata = $(this);
+
+    $.ajax({
+        url: "backend/bk_changeprofilepic.php",
+        method: "POST",
+        data: {
+            request: "changeprofilepic",
+            datavalue: fetchdata.data("datavalue")
+        },
+        beforeSend: function() {
+            $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+        },
+        success: function(dataResult) {
+            $("#loadingSpinner").fadeOut(200, function() {
+                $("#loadingSpinner").css("display", "none");
+            });
+
+            $('#addeditlabel').html(fetchdata.data('openmodallabel'));
+            $('#addeditcontent').html(dataResult);
+            $('#addeditmodal').modal('show');
+        },
+        error: function(xhr, status, error) {
+            $("#loadingSpinner").fadeOut(200, function() {
+                $("#loadingSpinner").css("display", "none");
+            });
+            console.error("Error occurred:", error);
+        }
+    });
+});
+
+$(document).on("change", "#uploadPic", function (e) {
+    const file = this.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+        Swal.fire({
+            icon: "error",
+            title: "Invalid file",
+            text: "Please select an image file."
+        });
+        $(this).val("");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+        $("#profilePreview")
+            .attr("src", e.target.result)
+            .hide()
+            .fadeIn(200);
+    };
+
+    reader.readAsDataURL(file);
+});
+
+$(document).off('click', '#saveProfilePic').on('click', '#saveProfilePic', function(e) {
+
+    e.stopPropagation();
+
+    var fetchdata = $(this);
+    var input = $("#uploadPic")[0];
+
+    if (!input.files.length) {
+        Swal.fire({
+            title: "No image selected",
+            text: "Please choose a profile picture.",
+            icon: "warning",
+            confirmButtonText: "OK",
+            scrollbarPadding: false
+        });
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append("request", fetchdata.data("backendrequest"));
+    formData.append("datavalue", $("#profilepictrigger").data("datavalue"));
+    formData.append("profile_pic", input.files[0]);
+
+    $.ajax({
+        url: fetchdata.data("backendurl"),
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+
+        beforeSend: function() {
+            $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+            fetchdata.prop("disabled", true);
+        },
+
+        success: function(dataResult) {
+            $("#loadingSpinner").fadeOut(200, function() {
+                $("#loadingSpinner").css("display", "none");
+            });
+
+            fetchdata.prop("disabled", false);
+
+            let res;
+            try {
+                res = typeof dataResult === "object" ? dataResult : JSON.parse(dataResult);
+            } catch (e) {
+                console.error("Invalid JSON:", dataResult);
+                Swal.fire("Error", "Invalid server response.", "error");
+                return;
+            }
+
+            if (res.status === 'success') {
+                $('#addeditmodal').modal('hide');
+
+                let newImg = '/JobPortal/' + res.new_image.replace('../', '');
+
+                // update sidebar image
+                $('.avatar-circle img').attr('src', newImg);
+
+                Swal.fire({
+                    title: "Upload successful",
+                    text: res.message || "Upload successful.",
+                    icon: "success",
+                    confirmButtonText: "OK",
+                    scrollbarPadding: false
+                });
+
+            } else {
+                Swal.fire({
+                    title: "Upload failed",
+                    text: res.message || "Something went wrong.",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                    scrollbarPadding: false
+                });
+            }
+        },
+
+        error: function(xhr, status, error) {
+            $("#loadingSpinner").fadeOut(200, function() {
+                $("#loadingSpinner").css("display", "none");
+            });
+
+            fetchdata.prop("disabled", false);
+            console.error("Error occurred:", error);
+
+            Swal.fire({
+                title: "Upload failed",
+                text: "Something went wrong.",
+                icon: "error",
+                confirmButtonText: "OK",
+                scrollbarPadding: false
+            });
+        }
+    });
+
+});
+//Profile Picture Management -- End

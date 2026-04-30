@@ -5,15 +5,15 @@
  *   Website: AdminLTE.io <https://adminlte.io>
  *   License: Open source - MIT <https://opensource.org/licenses/MIT>
  */
- 
+
 .btn-primary {
 	background-color: #07861f !important;
 	border-color: #17a2b8 !important;
 }
 
-.btn-primary:hover { 
-    background-color: #056613 !important; 
-    border-color: #17a2b8 !important; 
+.btn-primary:hover {
+    background-color: #056613 !important;
+    border-color: #17a2b8 !important;
 }
 
 .card-primary.card-outline {
@@ -124,3 +124,19 @@ span.brand-text.font-weight-light {
     transition: 0.2s ease;
 }
 
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #00ba16;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

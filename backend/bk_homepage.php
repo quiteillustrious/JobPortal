@@ -377,6 +377,7 @@ switch ($request) {
 
         if (empty($u['pds_file'])) $missinguser[] = "Personal Data Sheet";
         if (empty($u['workexp_file'])) $missinguser[] = "Work Experience Sheet";
+        if (empty($u['profile_pic'])) $missinguser[] = "Profile Picture";
         //        if (empty($u['perf_file'])) $missinguser[] = "Performance Rating File";
 
         if (count($missinguser) > 0) {
@@ -532,6 +533,7 @@ switch ($request) {
                     ,[perf_file]
                     ,[perf_rating]
                     ,[adj_rating]
+                    ,[profile_pic]
             FROM [tbl_ProfUserDetails]
             WHERE [UserID] = ?", "Select", array($userid));
 
@@ -605,11 +607,12 @@ switch ($request) {
         $selectuserattachments = execsqlSRS("
             SELECT attach_id, att_filename, att_filepath, att_dt
             FROM [tbl_Attachment]
-            WHERE [attach_id] = ? OR [attach_id] = ? OR [attach_id] = ?
+            WHERE [attach_id] = ? OR [attach_id] = ? OR [attach_id] = ? OR [attach_id] = ?
         ", "Select", array(
             $selectprofiledetails[0]['pds_file'] ?? '',
             $selectprofiledetails[0]['workexp_file'] ?? '',
-            $selectprofiledetails[0]['perf_file'] ?? ''
+            $selectprofiledetails[0]['perf_file'] ?? '',
+            $selectprofiledetails[0]['profile_pic'] ?? ''
         ));
 
         foreach ($selectuserattachments as $attuser) {
@@ -1565,24 +1568,6 @@ switch ($request) {
                 ORDER BY [comp_desc]
             ", "Select", array($snap_id, $user_id));
 
-            /*
-            $fetchsectors = execsqlSRS("
-                SELECT
-                    CASE question_code
-                        WHEN 'q40a' THEN 'Indigenous Group'
-                        WHEN 'q40b' THEN 'Person with Disability'
-                        WHEN 'q40c' THEN 'Solo Parent'
-                        WHEN 'q40d' THEN 'Pregnant'
-                        WHEN 'q40e' THEN 'Senior Citizen'
-                    END AS tag_label
-                FROM tbl_SnapshotAnswers
-                WHERE snap_id = ?
-                    AND UserID = ?
-                    AND answer = 'Yes'
-                    AND question_code IN ('q40a','q40b','q40c','q40d','q40e')
-            ", "Select", array($snap_id, $user_id));
-            */
-
             $personal = "<span class='section-title'>" . $fullName . "</span>";
 
             //Edu
@@ -1591,7 +1576,6 @@ switch ($request) {
             $total_hours = 0;
 
             foreach ($fetchedu as $edu) {
-
 
                 $degree = trim($edu['degree_name'] ?? '');
                 $major  = trim($edu['major_name'] ?? '');

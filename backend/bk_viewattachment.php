@@ -86,6 +86,20 @@ switch ($request) {
 		WHERE snap_id = ?
 	", "Select", [intval($datavalue)]);
 
+        $profilepicture = execsqlSRS("
+        SELECT file_path
+        FROM tbl_SnapshotAttachment
+        WHERE snap_id = ?
+        AND entity_type = 'snapuser_id'
+        AND file_name LIKE 'profile%'
+    ", "Select", array(intval($datavalue)));
+
+        $img = '/JobPortal/dist/img/tau-logo.png';
+
+        if (!empty($profilepicture[0]['file_path'])) {
+            $img = '/JobPortal/' . str_replace('../', '', $profilepicture[0]['file_path']);
+        }
+
         $user = $user[0] ?? [];
 
         $typeLabels = [
@@ -138,62 +152,125 @@ switch ($request) {
         ];
 
         echo "
-	<div class='card border border-success mb-3'>
-	<div class='card-header bg-success text-white'>
-		<h5 class='mb-0'>Applicant Profile</h5>
-	</div>
+<div class='card border border-success mb-3'>
+<div class='card-header bg-success text-white'>
+    <h5 class='mb-0'>Applicant Profile</h5>
+</div>
 
-	<div class='card-body'>
-		<div class='row'>
+<div class='card-body'>
 
-		<div class='col-md-6'>
-			<p><strong>Full Name:</strong> "
-            . htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['MiddleName'] ?? '') . ' ' . ($user['LastName'] ?? '') . ' ' . ($user['ExtName'] ?? '')) . "
-			</p>
+    <div class='d-flex align-items-start' style='gap:20px;'>
 
-			<p><strong>Email:</strong> " . htmlspecialchars($user['Email'] ?? '') . "</p>
-			<p><strong>Mobile:</strong> " . htmlspecialchars($user['MobileNumber'] ?? '') . "</p>
-			<p><strong>Telephone:</strong> " . htmlspecialchars($user['TelephoneNumber'] ?? '') . "</p>
+        <!-- PROFILE IMAGE -->
+        <div style='flex:0 0 200px;'>
+            <div style='
+                width: 180px;
+                height: 180px;
+                border-radius: 50%;
+                overflow: hidden;
+                border: 3px solid #28a745;
+            '>
+                <img src='{$img}'
+                     style='width:100%; height:100%; object-fit:cover;'>
+            </div>
+        </div>
 
-			<p><strong>Date of Birth:</strong> " . (!empty($user['DateOfBirth'])
-                ? date('F d, Y', strtotime($user['DateOfBirth']))
-                : '') . "</p>
-			<p><strong>Age:</strong> " . htmlspecialchars($user['Age'] ?? '') . "</p>
+        <!-- DETAILS -->
+        <div style='flex:1;'>
 
-			<p><strong>Sex:</strong> " . htmlspecialchars($user['Sex'] ?? '') . "</p>
-			<p><strong>Civil Status:</strong> " . htmlspecialchars($user['CivilStatus'] ?? '') . "</p>
-			<p><strong>Nationality:</strong> " . htmlspecialchars($user['Nationality'] ?? '') . "</p>
-			<p><strong>Religion:</strong> " . htmlspecialchars($user['Religion'] ?? '') . "</p>
-		</div>
+            <div class='row'>
 
-		<div class='col-md-6'>
-			<p><strong>Home Address:</strong><br>
-				" . htmlspecialchars(
-                ($user['HmHouse'] ?? '') . ' ' .
-                    ($user['HmStreet'] ?? '') . ', ' .
-                    ($user['HmBarangay'] ?? '') . ', ' .
-                    ($user['HmCity'] ?? '') . ', ' .
-                    ($user['HmProvince'] ?? '') . ' ' .
-                    ($user['HmZip'] ?? '')
-            ) . "
-			</p>
+                <!-- BASIC INFO CARD -->
+                <div class='col-md-6 mb-3'>
+                    <div class='card shadow-sm'>
+                        <div class='card-body'>
+                            <h6 class='text-success mb-2'>Basic Information</h6>
 
-			<p><strong>Current Address:</strong><br>
-				" . htmlspecialchars(
-                ($user['CurHouse'] ?? '') . ' ' .
-                    ($user['CurStreet'] ?? '') . ', ' .
-                    ($user['CurBarangay'] ?? '') . ', ' .
-                    ($user['CurCity'] ?? '') . ', ' .
-                    ($user['CurProvince'] ?? '') . ' ' .
-                    ($user['CurZip'] ?? '')
-            ) . "
-			</p>
-		</div>
+                            <strong>Name:</strong><br>
+                            " . htmlspecialchars(
+            trim(
+                ($user['FirstName'] ?? '') . ' ' .
+                    ($user['MiddleName'] ?? '') . ' ' .
+                    ($user['LastName'] ?? '') . ' ' .
+                    (
+                        !empty($user['ExtName']) && strtolower($user['ExtName']) !== 'n/a'
+                        ? $user['ExtName']
+                        : ''
+                    )
+            )
+        ) . "
+                            <hr class='my-2'>
 
-		</div>
-	</div>
-	</div>
-	";
+                            <strong>Email:</strong> " . htmlspecialchars($user['Email'] ?? '') . "<br>
+                            <strong>Mobile:</strong> " . htmlspecialchars($user['MobileNumber'] ?? '') . "<br>
+                            <strong>Telephone:</strong> " . htmlspecialchars($user['TelephoneNumber'] ?? '') . "<br>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PERSONAL INFO CARD -->
+                <div class='col-md-6'>
+                    <div class='card shadow-sm'>
+                        <div class='card-body'>
+                            <h6 class='text-success mb-2'>Personal Details</h6>
+
+                            <strong>Date of Birth:</strong> " . (!empty($user['DateOfBirth'])
+            ? date('F d, Y', strtotime($user['DateOfBirth']))
+            : '') . "<br>
+
+                            <strong>Age:</strong> " . htmlspecialchars($user['Age'] ?? '') . "<br>
+                            <strong>Sex:</strong> " . htmlspecialchars($user['Sex'] ?? '') . "<br>
+                            <strong>Civil Status:</strong> " . htmlspecialchars($user['CivilStatus'] ?? '') . "<br>
+                            <strong>Nationality:</strong> " . htmlspecialchars($user['Nationality'] ?? '') . "<br>
+                            <strong>Religion:</strong> " . htmlspecialchars($user['Religion'] ?? '') . "<br>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ADDRESS SECTION -->
+    <div class='row'>
+
+        <div class='col-md-6'>
+            <div class='card border-light shadow-sm'>
+                <div class='card-body'>
+                    <h6 class='text-success'>Home Address</h6>
+                    " . htmlspecialchars(
+            ($user['HmHouse'] ?? '') . ' ' .
+                ($user['HmStreet'] ?? '') . ', ' .
+                ($user['HmBarangay'] ?? '') . ', ' .
+                ($user['HmCity'] ?? '') . ', ' .
+                ($user['HmProvince'] ?? '') . ' ' .
+                ($user['HmZip'] ?? '')
+        ) . "
+                </div>
+            </div>
+        </div>
+
+        <div class='col-md-6'>
+            <div class='card border-light shadow-sm'>
+                <div class='card-body'>
+                    <h6 class='text-success'>Current Address</h6>
+                    " . htmlspecialchars(
+            ($user['CurHouse'] ?? '') . ' ' .
+                ($user['CurStreet'] ?? '') . ', ' .
+                ($user['CurBarangay'] ?? '') . ', ' .
+                ($user['CurCity'] ?? '') . ', ' .
+                ($user['CurProvince'] ?? '') . ' ' .
+                ($user['CurZip'] ?? '')
+        ) . "
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+";
 
         if (empty($files)) {
             echo "<div class='alert alert-warning'>No attachments found for this snapshot.</div>";

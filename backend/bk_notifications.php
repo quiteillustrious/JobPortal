@@ -40,6 +40,7 @@ switch ($request) {
             FROM [tbl_Notifications]
             WHERE [UserID] = ?
             AND [IsActive] = 0
+            AND [IsRead] = 1
             ORDER BY [notif_id] DESC
         ", "Select", [intval($userid)]);
 

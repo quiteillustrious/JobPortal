@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -48,8 +49,10 @@
 <script src="plugins/sweetalert2/sweetalert2.min.js"></script>
 <script src="dist/js/adminlte.min.js"></script>
 <script src="ajax/ajax.js?v=<?= filemtime('ajax/ajax.js'); ?>"></script>
+<script src="dist/js/index.global.min.js"></script><!-- FullCalendar -->
 
 <script>
-  autocall("login","","");
+  autocall("login", "", "");
 </script>
+
 </html>

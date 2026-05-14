@@ -13,10 +13,33 @@ $currentdt = date("Y-m-d H:i:s");
 
 switch ($request) {
 
-    case "addevent":
+	case "addevent":
 
-        echo '
-		<div class="p-3 bg-light border rounded border-success shadow" id="workexperiencediv">
+		echo '
+		<style>
+			.applicant-card {
+				font-size: 12px;
+				margin-right: 6px;
+			}
+
+			.applicant-card:hover {
+				background-color: #f0fff4;
+			}
+
+			.selected-applicant {
+				background-color: #28a745 !important;
+				color: white !important;
+				border-color: #28a745 !important;
+			}
+
+			.selected-applicant span {
+				color: white !important;
+			}
+		</style>
+		';
+
+		echo '
+		<div class="p-3 bg-light border rounded border-success shadow" id="schedulediv">
 
 			<!-- Event Title -->
 			<div class="form-group">
@@ -43,7 +66,7 @@ switch ($request) {
 			</div>
 
 			<!-- Select Vacancy -->
-			<div class="form-group" id="schedule_vacancy">
+			<div class="form-group" id="schedule_vacancy_container">
 				<label for="work_status">
 					Select Vacancy <span class="text-danger">*</span>
 				</label>
@@ -52,34 +75,184 @@ switch ($request) {
 				<select class="form-control border-success" id="schedule_vacancy" name="schedule_vacancy">
 					<option value="">--Select Vacancy--</option><hr>';
 
-        $appointment = execsqlSRS("
-						SELECT [appoint_id],
-							[appoint_desc],
-							[IsActive]
-						FROM [tbl_ProfExpAppoint]
-						WHERE [IsActive] = 0
-						ORDER BY [appoint_desc]
-					", "Select", array());
+		$appointment = execsqlSRS("
+			SELECT  pos.[pubpos_id]
+					,pos.[publication_id]
+					,pos.[position_title]
+					,office.[office_desc]
+			FROM [tbl_PublicationPosition] pos
 
-        foreach ($appointment as $app) {
-            echo '<option value="' . htmlspecialchars($app['appoint_id']) . '">' . htmlspecialchars($app['appoint_desc']) . '</option>';
-        }
+			LEFT JOIN [tbl_Publication] pub
+			ON pub.[publication_id] = pos.[publication_id]
 
-        echo '      </select>
+			LEFT JOIN [tbl_Office] office
+			ON office.[office_id] = pos.[office_id]
+
+			WHERE pos.[IsActive] = 0
+				AND pub.[pubstatus_id] = 4
+			ORDER BY pos.[position_title]
+		", "Select", array());
+
+		foreach ($appointment as $app) {
+			echo '<option value="' . htmlspecialchars($app['pubpos_id']) . '">'
+				. htmlspecialchars($app['position_title'])
+				. ' — '
+				. htmlspecialchars($app['office_desc'])
+				. '</option>';
+		}
+
+		echo '      </select>
+			</div>
+
+			<!-- Applicants Dropdown -->
+			<div class="form-group">
+				<label>Select Applicant <span class="text-danger">*</span></label>
+
+				<div id="applicantsdropdown">
+					<span class="font-weight-bold text-danger">Select a Vacancy First...</span>
+				</div>
 			</div>
 
 			<!-- Save Button -->
 			<div class="form-group mt-3 d-flex justify-content-center">
 				<button type="button"
 						class="btn btn-success"
-						id="save_workexperiencedetails"
+						id="save_schedule"
 						>
 					Save Event <i class="fa-solid fa-floppy-disk"></i>
 				</button>
 			</div>
 
 		</div>
+
+		<script>
+		    $(document).on("change", "#schedule_vacancy", function() {
+
+				var pubpos_id = $(this).val();
+
+				$.ajax({
+					url: "backend/bk_aminterviewscheduler.php",
+					type: "POST",
+					data: {
+						request: "applicantsdropdown",
+						pubpos_id: pubpos_id
+					},
+                    beforeSend: function() {
+                        $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+                    },
+					success: function(response) {
+                        $("#loadingSpinner").fadeOut(200, function() {
+                            $("#loadingSpinner").css("display", "none");
+                        });
+						$("#applicantsdropdown").html(response);
+					}
+				});
+
+			});
+
+		let selectedApplicants = [];
+
+		$(document).on("click", ".applicant-card", function () {
+
+			let id = $(this).data("id");
+
+			if (id === "all") {
+
+				selectedApplicants = [];
+
+				if (!$(this).hasClass("selected-applicant")) {
+
+					$(".applicant-card").each(function () {
+
+						let appId = $(this).data("id");
+
+						if (appId !== "all") {
+							selectedApplicants.push(appId);
+							$(this).addClass("selected-applicant");
+						}
+					});
+
+					$(this).addClass("selected-applicant");
+
+				} else {
+
+					$(".applicant-card").removeClass("selected-applicant");
+				}
+
+				console.log(selectedApplicants);
+				return;
+			}
+
+			$(this).toggleClass("selected-applicant");
+
+			if (selectedApplicants.includes(id)) {
+				selectedApplicants = selectedApplicants.filter(x => x != id);
+			} else {
+				selectedApplicants.push(id);
+			}
+
+			console.log(selectedApplicants);
+		});
+		</script>
         ';
 
-        break;
+		break;
+
+	case "applicantsdropdown":
+
+		$pubpos_id = isset($_POST["pubpos_id"]) ? $_POST["pubpos_id"] : "";
+
+		$applicants = execsqlSRS("
+			SELECT 	snap.[snap_id]
+					,snap.[pubpos_id]
+					,userdet.[FirstName]
+					,userdet.[LastName]
+			FROM [tbl_Snapshot] snap
+
+			LEFT JOIN [tbl_SnapshotUser] userdet
+			ON userdet.[snap_id] = snap.[snap_id]
+
+			WHERE snap.[IsActive] = 0
+				AND snap.[pubpos_id] = ?
+			", "Select", array(intval($pubpos_id)));
+
+		$applicantscount = count($applicants);
+
+		if (!empty($applicants)) {
+			echo '<div id="schedule_applicant_list" class="d-flex flex-wrap gap-2">';
+
+			echo '
+			<div class="applicant-card select-all-card border border-danger rounded px-2 py-1 bg-light"
+				data-id="all"
+				style="cursor:pointer; transition:0.2s;">
+
+				<span class="text-danger font-weight-bold small">
+					Select All
+				</span>
+
+			</div>';
+			foreach ($applicants as $app) {
+
+				echo '
+				<div class="applicant-card border border-success rounded px-2 py-1 bg-white"
+					data-id="' . htmlspecialchars($app['snap_id']) . '"
+					style="cursor:pointer; transition:0.2s;">
+
+					<span class="text-success font-weight-bold small">
+						' . htmlspecialchars($app['FirstName']) . ' ' . htmlspecialchars($app['LastName']) . '
+					</span>
+
+				</div>';
+			}
+
+			echo '</div>';
+		} else {
+			echo '<div class="">
+				<div class="text-danger font-weight-bold">
+					No Applicants for this Vacancy...
+				</div>
+			</div>';
+		}
+
+		break;
 }

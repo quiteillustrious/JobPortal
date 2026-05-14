@@ -200,15 +200,15 @@ include "modals.php";
                             $("#loadingSpinner").css("display", "none");
                         });
 
-                        $("#attachmentmodalcontent").html(response);
+                        $("#addeditcontent").html(response);
                         const formattedDate = new Date(info.dateStr).toLocaleDateString('en-US', {
                             month: 'long',
                             day: 'numeric',
                             year: 'numeric'
                         });
 
-                        $("#attachmentmodallabel").html("Schedule an event for " + formattedDate);
-                        $("#attachmentmodal").modal("show");
+                        $("#addeditlabel").html("Schedule an event for " + formattedDate);
+                        $("#addeditmodal").modal("show");
                     }
                 });
 

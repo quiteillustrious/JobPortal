@@ -24,6 +24,7 @@ $dbc=dbconES();
 	}
 }
 
+<<<<<<< Updated upstream
 function dbconES(){
 	include "../config/config.php";
 	try {
@@ -37,6 +38,29 @@ function dbconES(){
 
 	$dbh->setAttribute(PDO::SQLSRV_ATTR_ENCODING, PDO::SQLSRV_ENCODING_SYSTEM);
 	return $dbh;
+=======
+function dbconES() {
+    include "../config/config.php";
+
+    try {
+
+        $dbh = new PDO(
+            "sqlsrv:Server={$srsServer};Database={$srsDB}",
+            $srsUser,     
+            $srsPass      
+        );
+
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $dbh->setAttribute(PDO::SQLSRV_ATTR_ENCODING, PDO::SQLSRV_ENCODING_SYSTEM);
+
+    } catch (PDOException $e) {
+
+        echo "Failed: " . $e->getMessage();
+        $dbh = null;
+    }
+
+    return $dbh;
+>>>>>>> Stashed changes
 }
 */
 
@@ -44,6 +68,7 @@ function execsqlSRS($sql, $oper, $arr)
 {
 	$dbc = dbconES();
 
+<<<<<<< Updated upstream
 
 	if ($oper == "Insert" or $oper == "Update" or $oper == "Delete") {
 
@@ -86,3 +111,6 @@ function dbconES()
 
 	return $dbh;
 }
+=======
+?>
+>>>>>>> Stashed changes

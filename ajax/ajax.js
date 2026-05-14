@@ -765,7 +765,7 @@ class TableLoader {
 $(document).off('click', '#add_data').on('click', '#add_data', function(e) {
 
 	var fetchdata = $(this);
-
+		console.log(fetchdata);
 		$.ajax({
 			url:	fetchdata.data('backendurl'),
 			method:	"POST",

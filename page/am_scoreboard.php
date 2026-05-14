@@ -119,11 +119,7 @@ include "modals.php";
     <script>
         DivLoader(
             'positionstableloader',
-<<<<<<< Updated upstream
             'backend/bk_amreviewattachments.php', {
-=======
-            'backend/bk_am_scoreboard.php', {
->>>>>>> Stashed changes
                 request: 'fetchpositions'
             }
         );

@@ -24,7 +24,7 @@ $dbc=dbconES();
 	}
 }
 
-<<<<<<< Updated upstream
+
 function dbconES(){
 	include "../config/config.php";
 	try {
@@ -38,7 +38,7 @@ function dbconES(){
 
 	$dbh->setAttribute(PDO::SQLSRV_ATTR_ENCODING, PDO::SQLSRV_ENCODING_SYSTEM);
 	return $dbh;
-=======
+
 function dbconES() {
     include "../config/config.php";
 
@@ -60,7 +60,7 @@ function dbconES() {
     }
 
     return $dbh;
->>>>>>> Stashed changes
+
 }
 */
 
@@ -68,7 +68,7 @@ function execsqlSRS($sql, $oper, $arr)
 {
 	$dbc = dbconES();
 
-<<<<<<< Updated upstream
+
 
 	if ($oper == "Insert" or $oper == "Update" or $oper == "Delete") {
 
@@ -111,6 +111,6 @@ function dbconES()
 
 	return $dbh;
 }
-=======
+
 ?>
->>>>>>> Stashed changes
+

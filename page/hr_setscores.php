@@ -120,12 +120,12 @@ $(document).ready(function() {
 $(document).off('click', '#add_data2').on('click', '#add_data2', function(e) {
 
 	var fetchdata = $(this);
-		console.log(fetchdata);
 		$.ajax({
 			url:	fetchdata.data('backendurl'),
 			method:	"POST",
 			data:{
 					request: fetchdata.data('backendrequest'),
+					datavalue: fetchdata.data('datavalue'),
 				},
 
 			beforeSend: function(xhr) {

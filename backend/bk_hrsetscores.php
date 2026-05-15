@@ -5,7 +5,7 @@ include "../db/dbconnection.php";
 $request = isset($_POST["request"]) ? $_POST["request"] : "";
 $fields = isset($_POST["fields"]) ? $_POST["fields"] : "";
 $operator = isset($_POST["operator"]) ? $_POST["operator"] : "";
-$datavalue = isset($_POST["datavalue"]) ? $_POST["datavalue"] : "";
+$datavalue = isset($_POST["datavalue"]) ? $_POST["datavalue"] : "0";
 $logslocation = isset($_POST["logslocation"]) ? $_POST["logslocation"] : "";
 $userid = isset($_POST["userid"]) ? $_POST["userid"] : "";
 
@@ -75,7 +75,7 @@ switch ($request) {
 								id='edit_data' 
 								data-tooltip='View/Edit Content'
 								data-openmodal='#addeditmodal'
-								data-openmodallabel='Add Content'
+								data-openmodallabel='Content'
 								data-openmodalbody='#addeditcontent'
 								data-backendurl='backend/bk_hrsetscores.php'
 								data-backendrequest='viewchildlevel'
@@ -97,7 +97,7 @@ switch ($request) {
 					class="btn btn-success" 
 					id="add_data2"
 					data-openmodal="#addeditmodal"
-					data-openmodallabel="Add Category"
+					data-openmodallabel="Add Content"
 					data-openmodalbody="#addeditcontent"
 					data-backendurl="backend/bk_hrsetscores.php"
 					data-datavalue="'.$datavalue.'"
@@ -115,6 +115,22 @@ switch ($request) {
 		"Search",
 		array()
 		);
+		
+		
+		echo '<div class="card-body table-responsive p-0">
+                <table class="table table-hover table-striped">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>ID</th>
+                      <th>Description</th>
+                      <th>Value</th>
+					  <th>Status</th>
+					  <th>Action</th>
+                    </tr>
+                  </thead>
+				  <tbody >';
+				  
+					
 			foreach ($viewlevels as $level) {
 				echo "<tr>";
 				echo "<td>" . htmlspecialchars($level["col_id"]) . "</td>";
@@ -156,8 +172,10 @@ switch ($request) {
 								data-backendrequest='editlevel'
 								data-datavalue='" . htmlspecialchars($level["col_id"]) . "'>
 							<i class='fa-solid fa-pencil'></i>
-						</button>
-						<button type='button' 
+						</button>";
+						
+					if($datavalue = 0){	
+					echo "	<button type='button' 
 								class='btn btn-info m-1' 
 								id='edit_data' 
 								data-tooltip='View/Edit Content'
@@ -168,29 +186,30 @@ switch ($request) {
 								data-backendrequest='viewchildlevel'
 								data-datavalue='" . htmlspecialchars($level["col_id"]) . "'>
 							<i class='fa-solid fa-eye'></i>
-						</button>
-					  </td>";
+						</button>";
+					}
+						
+					  echo "</td>";
 
 				echo "</tr>";
 			}
-		
+		echo '	</tbody>
+			</table>
+		  </div>';
 		
 	break;
 	
 	
 	case "addlevel":
-		$motherID = null;
-		if(!$datavalue){
-			$motherID = 0;
-		}else{
-			$motherID = $datavalue;
+		$title = "Add Category";
+		if($datavalue > 0){
+		$title = "Add Content";
 		}
-		echo $datavalue ;
 		echo '
 		<div class="p-3">
 		  <div class="form-group">
 			<label for="">Category:</label>
-			<input hidden type="text" class="form-control field-input" id="field1" value="'.$motherID.'"> 
+			<input hidden type="text" class="form-control field-input" id="field1" value="'. $datavalue.'"> 
 			<input type="text" class="form-control field-input" id="field2" placeholder="e.g. Potential">
 			
 		  </div>
@@ -214,9 +233,11 @@ switch ($request) {
 					data-backendurl="backend/bk_hrsetscores.php"
 					data-tableid="#tblvieweduclevels"
 					data-tablerequest="vieweduclevels"
-					class="btn btn-success">Add Category</button>
+					class="btn btn-success">'.$title.' </button>
 		  </div>
 		</div>';
+		
+		
 	break;
 	
 	case "editlevel":
@@ -239,7 +260,7 @@ switch ($request) {
 			echo '<div class="form-group">
 					<label for="">Category:</label>
 					<input hidden type="text" class="form-control field-input" id="field1" value="0"> 
-					<input type="text" class="form-control field-input" id="field2"  value=' . htmlspecialchars($edit["rating_col"]) . '>
+					<input type="text" class="form-control field-input" id="field2"  value="' . $edit["rating_col"] . '">
 				</div>';
 				
 			echo '<div class="form-group">
@@ -295,10 +316,14 @@ switch ($request) {
 		}
 
 		else if ($operator == "add") {
-
+			
+			$sql = "[mothercol_id], [rating_col], [max_value], [IsActive]";
+			
+			$params = ":mothercol_id, :rating_col, :max_value, :IsActive";
+			
 			$querysave = execsqlSRS("
-					INSERT INTO [tbl_SnapshotSBCol] ([mothercol_id], [rating_col], [max_value], [IsActive])
-					VALUES (:mothercol_id, :rating_col, :max_value, :IsActive)", 
+					INSERT INTO [tbl_SnapshotSBCol] ($sql)
+					VALUES ($params)", 
 					"Insert", [
 								":mothercol_id" => $fields["field1"], 
 								":rating_col" => $fields["field2"],

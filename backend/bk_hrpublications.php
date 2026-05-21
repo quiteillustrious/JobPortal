@@ -283,7 +283,15 @@ switch ($request) {
 
         <div class="addposition_div">
 
-          <!-- Position Title -->
+          <!-- Position Type -->
+          <div class="form-group">
+            <label for="position_title">Position Type</label>
+			<select id="job_type" class="form-control">
+			<option value="0" selected>Faculty</option>
+			<option value="1">Non - Teaching</option>
+			</select>
+            </div>
+		  <!-- Position Title -->
           <div class="form-group">
             <label for="position_title">Position Title</label>
             <input type="text" class="form-control" id="position_title" name="position_title" placeholder="e.g. Administrative Officer I" required>
@@ -466,6 +474,7 @@ switch ($request) {
     case "saveposition":
 
         // Collect inputs
+        $job_type = trim($_POST['job_type'] ?? '');
         $position_title = trim($_POST['position_title'] ?? '');
         $appoint_id     = trim($_POST['appoint_id'] ?? '');
         $sg_id          = trim($_POST['sg_id'] ?? '');
@@ -509,7 +518,10 @@ switch ($request) {
             echo json_encode(["status" => "error", "message" => "User ID is required."]);
             exit;
         }
-        if (empty($position_title)) {
+        if (empty($job_type)) {
+            echo json_encode(["status" => "error", "message" => "Position job type is required."]);
+            exit;
+        } if (empty($position_title)) {
             echo json_encode(["status" => "error", "message" => "Position Title is required."]);
             exit;
         }
@@ -549,6 +561,7 @@ switch ($request) {
             "
             INSERT INTO [tbl_PublicationPosition] (
                 [publication_id]
+                ,[job_type]
                 ,[position_title]
                 ,[appoint_id]
                 ,[sg_id]
@@ -560,11 +573,12 @@ switch ($request) {
                 ,[UserID]
                 ,[IsActive]
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         ",
             "Insert",
             array(
                 intval($datavalue),
+                $job_type,
                 $position_title,
                 intval($appoint_id),
                 intval($sg_id),

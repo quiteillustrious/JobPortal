@@ -15,6 +15,7 @@ $operator = isset($_POST["operator"]) ? $_POST["operator"] : "";
 $datavalue = isset($_POST["datavalue"]) ? $_POST["datavalue"] : "";
 $logslocation = isset($_POST["logslocation"]) ? $_POST["logslocation"] : "";
 $userid = isset($_POST["userid"]) ? $_POST["userid"] : "";
+$RID = isset($_POST["RID"]) ? $_POST["RID"] : "";
 
 $currentdt = date("Y-m-d H:i:s");
 
@@ -25,6 +26,7 @@ switch ($request) {
 		$queryselect = execsqlSRS(
 			"
 	SELECT  pub.[publication_id]
+			,pub.[job_type]
 			,pub.[pubtitle_name]
 			,pub.[pubtitle_startdt]
 			,pub.[pubtitle_enddt]
@@ -33,7 +35,7 @@ switch ($request) {
 			,pub.[UserID]
 			,pub.[created_at]
 			,pub.[IsActive]
-
+			
 	FROM [tbl_Publication] pub
 
 	LEFT JOIN [tbl_PublicationStatus] stat
@@ -42,7 +44,7 @@ switch ($request) {
 	LEFT JOIN [tbl_Colors] c
 	ON c.color_id = stat.color_id
 
-	WHERE pub.[pubstatus_id] != '1'
+	WHERE pub.[pubstatus_id] = '4' AND job_type = '1'
 
 	ORDER BY pub.publication_id DESC",
 			"Search",
@@ -65,18 +67,22 @@ switch ($request) {
 		break;
 
 	case "fetchpositions":
-
+		$type = 1;
+		if($RID == 4){
+			$type = 0;
+		}
 		$queryselect = execsqlSRS(
 			"
 			SELECT  pos.[pubpos_id]
 					,pos.[publication_id]
+					,pos.[job_type]
 					,pos.[position_title]
 					,app.[appoint_desc]
 					,c.[color_desc]
 					,office.[office_desc]
 
 			FROM [tbl_PublicationPosition] pos
-
+			LEFT JOIN [tbl_Publication] pub ON pub.publication_id = pos.publication_id
 			LEFT JOIN [tbl_ProfExpAppoint] app
 			ON app.appoint_id = pos.appoint_id
 
@@ -88,7 +94,7 @@ switch ($request) {
 
 			LEFT JOIN [tbl_Office] office
 			ON office.[office_id] = pos.[office_id]
-
+			WHERE pub.[pubstatus_id] = '4' AND pos.job_type = '$type'
 			ORDER BY pos.position_title, pos.publication_id",
 			"Search",
 			array()
@@ -147,15 +153,14 @@ switch ($request) {
 			"
 			SELECT
 				snap.snap_id,
-				stat.status_code,
-				c.color_desc,
 				snap.UserID,
 				userdet.LastName,
 				userdet.FirstName,
 				userdet.MiddleName,
-				snap.AppliedDate
-
+				snap.AppliedDate,
+				score.snap_id AS scored
 			FROM tbl_Snapshot snap
+			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
 
 			OUTER APPLY (
 				SELECT TOP 1
@@ -166,24 +171,18 @@ switch ($request) {
 				WHERE u.UserID = snap.UserID
 				ORDER BY u.UserID
 			) userdet
-
+			
 			OUTER APPLY (
 				SELECT TOP 1
-					s.status_code,
-					s.color_id
-				FROM tbl_SnapshotStatus s
-				WHERE s.snap_status = snap.snap_status
-				ORDER BY s.snap_status
-			) stat
-
-			OUTER APPLY (
-				SELECT TOP 1
-					c.color_desc
-				FROM tbl_Colors c
-				WHERE c.color_id = stat.color_id
-			) c
-
-			WHERE snap.pubpos_id = ?
+					[snap_id]
+				FROM [tbl_SnapshotSB] u
+				WHERE u.[snap_id] = snap.[snap_id]
+				AND u.[pubpos_id] = $datavalue
+				ORDER BY u.snap_id
+			) score
+			
+			
+			WHERE dr.IsQual = '0' AND snap.pubpos_id = ?
 
 			ORDER BY userdet.FirstName
 		",
@@ -236,6 +235,7 @@ switch ($request) {
 
 			foreach ($fetchapplicants as $app) {
 
+				$scored = htmlspecialchars($app["scored"] ?? '');
 				$lastname = htmlspecialchars($app["LastName"] ?? '');
 				$firstname = htmlspecialchars($app["FirstName"] ?? '');
 				$middlename = htmlspecialchars($app["MiddleName"] ?? '');
@@ -260,9 +260,12 @@ switch ($request) {
 				echo "<td class='font-weight-bold'>$fullname</td>";
 
 				echo "<td>$formattedDate</td>";
-
-				echo "<td><span class='badge badge-" . $app['color_desc'] . " p-2'>" . $app['status_code'] . "</span></td>";
-
+				if($scored == "" || $scored == null){
+						echo "<td><span class='badge badge-danger p-2'>No Score Yet</span></td>";
+				}else{
+					
+				}
+			
 				echo "</tr>";
 
 				$i++;
@@ -284,349 +287,51 @@ switch ($request) {
 		break;
 
 	case "attachmentreviewer":
+		
+		$getcriteria = execsqlSRS("SELECT 
+						[col_id]
+					  ,[mothercol_id]
+					  ,[rating_col]
+					  ,[max_value]
+					  ,[IsActive] FROM [tbl_SnapshotSBCol] WHERE [mothercol_id] = '0'", "SELECT", array());
 
-		$files = execsqlSRS("
-		SELECT snapattach_id, snap_id, entity_type, entity_id,
-			attach_id, file_name, file_path, created_at, checked
-		FROM tbl_SnapshotAttachment
-		WHERE snap_id = ?
-	", "Select", [intval($datavalue)]);
-
-		$getpubpos = execsqlSRS("
-		SELECT TOP 1 pubpos_id
-		FROM tbl_Snapshot
-		WHERE snap_id = ?
-		", "", array(intval($datavalue)));
-
-		$user = execsqlSRS("
-		SELECT TOP 1 *
-		FROM tbl_SnapshotUser
-		WHERE snap_id = ?
-	", "Select", [intval($datavalue)]);
-
-		$user = $user[0] ?? [];
-
-		$typeLabels = [
-			'snapuser_id'     => 'PDS/Exp/PR',
-			'snapeduc_id'     => 'Education',
-			'snapelig_id'     => 'Eligibility',
-			'snapexp_id'      => 'Work Experience',
-			'snapvolwork_id'  => 'Volunteer Work',
-			'snapld_id'       => 'Learning & Development',
-			'snaporgassoc_id' => 'Organization Association',
-			'snapnonacad_id'  => 'Non-Academic Recognition'
-		];
-
-		$tableMap = [
-			'snapeduc_id' => [
-				'table' => 'tbl_SnapshotEducation',
-				'key'   => 'snapeduc_id',
-				'label' => 'degree_name'
-			],
-			'snapelig_id' => [
-				'table' => 'tbl_SnapshotEligibility',
-				'key'   => 'snapelig_id',
-				'label' => 'elig_type'
-			],
-			'snapexp_id' => [
-				'table' => 'tbl_SnapshotExp',
-				'key'   => 'snapexp_id',
-				'label' => 'position'
-			],
-			'snapvolwork_id' => [
-				'table' => 'tbl_SnapshotVolWork',
-				'key'   => 'snapvolwork_id',
-				'label' => 'org_name'
-			],
-			'snapld_id' => [
-				'table' => 'tbl_SnapshotLD',
-				'key'   => 'snapld_id',
-				'label' => 'ld_title'
-			],
-			'snaporgassoc_id' => [
-				'table' => 'tbl_SnapshotOrgAssoc',
-				'key'   => 'snaporgassoc_id',
-				'label' => 'orgassoc_desc'
-			],
-			'snapnonacad_id' => [
-				'table' => 'tbl_SnapshotNonAcad',
-				'key'   => 'snapnonacad_id',
-				'label' => 'nonacad_desc'
-			]
-		];
-
-		echo "
-	<div class='card border border-success mb-3'>
-	<div class='card-header bg-success text-white'>
-		<h5 class='mb-0'>Applicant Profile</h5>
-	</div>
-
-	<div class='card-body'>
-		<div class='row'>
-
-		<div class='col-md-6'>
-			<p><strong>Full Name:</strong> "
-			. htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['MiddleName'] ?? '') . ' ' . ($user['LastName'] ?? '') . ' ' . ($user['ExtName'] ?? '')) . "
-			</p>
-
-			<p><strong>Email:</strong> " . htmlspecialchars($user['Email'] ?? '') . "</p>
-			<p><strong>Mobile:</strong> " . htmlspecialchars($user['MobileNumber'] ?? '') . "</p>
-			<p><strong>Telephone:</strong> " . htmlspecialchars($user['TelephoneNumber'] ?? '') . "</p>
-
-			<p><strong>Date of Birth:</strong> " . (!empty($user['DateOfBirth'])
-				? date('F d, Y', strtotime($user['DateOfBirth']))
-				: '') . "</p>
-			<p><strong>Age:</strong> " . htmlspecialchars($user['Age'] ?? '') . "</p>
-
-			<p><strong>Sex:</strong> " . htmlspecialchars($user['Sex'] ?? '') . "</p>
-			<p><strong>Civil Status:</strong> " . htmlspecialchars($user['CivilStatus'] ?? '') . "</p>
-			<p><strong>Nationality:</strong> " . htmlspecialchars($user['Nationality'] ?? '') . "</p>
-			<p><strong>Religion:</strong> " . htmlspecialchars($user['Religion'] ?? '') . "</p>
-		</div>
-
-		<div class='col-md-6'>
-			<p><strong>Home Address:</strong><br>
-				" . htmlspecialchars(
-				($user['HmHouse'] ?? '') . ' ' .
-					($user['HmStreet'] ?? '') . ', ' .
-					($user['HmBarangay'] ?? '') . ', ' .
-					($user['HmCity'] ?? '') . ', ' .
-					($user['HmProvince'] ?? '') . ' ' .
-					($user['HmZip'] ?? '')
-			) . "
-			</p>
-
-			<p><strong>Current Address:</strong><br>
-				" . htmlspecialchars(
-				($user['CurHouse'] ?? '') . ' ' .
-					($user['CurStreet'] ?? '') . ', ' .
-					($user['CurBarangay'] ?? '') . ', ' .
-					($user['CurCity'] ?? '') . ', ' .
-					($user['CurProvince'] ?? '') . ' ' .
-					($user['CurZip'] ?? '')
-			) . "
-			</p>
-		</div>
-
-		</div>
-	</div>
-	</div>
-	";
-
-		if (empty($files)) {
-			echo "<div class='alert alert-warning'>No attachments found for this snapshot.</div>";
-			break;
-		}
-
-		echo "
-	<div class='card border border-success'>
-	<div class='card-header bg-success text-white'>
-		<h5 class='mb-0'>Attachments</h5>
-	</div>
-
-	<div class='card-body p-0 table-responsive'>
-		<table class='table table-hover mb-0'>
-		<thead class='table-success'>
-			<tr>
-			<th>#</th>
-			<th>Reference</th>
-			<th>Type</th>
-			<th>Uploaded</th>
-			<th>Checklist</th>
-			</tr>
-		</thead>
-		<tbody>
-	";
-
-		$i = 1;
-
-		foreach ($files as $f) {
-
-			$id       = $f['snapattach_id'];
-			$type     = $f['entity_type'] ?? '';
-			$entityId = $f['entity_id'] ?? 0;
-			$date = '';
-
-			if (!empty($f['created_at'])) {
-				try {
-					$dt = new DateTime($f['created_at']);
-					$date = $dt->format('l, F j, Y • g:i A');
-				} catch (Exception $e) {
-					$date = htmlspecialchars($f['created_at']);
+		echo "<table class='table table-hover mb-0' style='width: 100%;'>";
+		echo "<tbody>";
+		
+		
+		echo "<tr>";
+		foreach($getcriteria as $first){
+			$Mother = $first["col_id"] ?? "";
+			$Title = $first["rating_col"] ?? "";
+			$Points = $first["max_value"] ?? "";
+			
+			echo '<td style="width: 50%; text-align:center;">'.$Title. " ( " . $Points . " ) " .'</td>';
+			echo "<tr>";
+			$getchild = execsqlSRS("SELECT 
+						[col_id]
+					  ,[mothercol_id]
+					  ,[rating_col]
+					  ,[max_value]
+					  ,[IsActive] FROM [tbl_SnapshotSBCol] WHERE [mothercol_id] = '$Mother'", "SELECT", array());
+				foreach($getchild  as $second){
+					$Mother2 = $second["col_id"] ?? "";
+					$Title2 = $second["rating_col"] ?? "";
+					$Points2 = $second["max_value"] ?? "";
+					
+					echo '<td style="width: 50%; text-align:center;">'.$Title2. " ( " . $Points2 . " ) " .'</td>';
+					
+					
 				}
-			}
-
-			$typeLabel = $typeLabels[$type] ?? $type;
-
-			$reference = 'Unknown';
-
-			if ($type === 'snapuser_id') {
-				$reference = 'PDS/Work Experience/Performance Rating';
-			} elseif (!empty($tableMap[$type])) {
-
-				$tbl = $tableMap[$type]['table'];
-				$key = $tableMap[$type]['key'];
-				$col = $tableMap[$type]['label'];
-
-				$res = execsqlSRS("
-				SELECT TOP 1 $col AS label
-				FROM $tbl
-				WHERE $key = ?
-			", "Select", [$entityId]);
-
-				if (!empty($res[0]['label'])) {
-					$reference = $res[0]['label'];
-				}
-			}
-
-			$path = $f['file_path'] ?? '';
-			$url  = !empty($path) ? str_replace('../', '/JobPortal/', $path) : '';
-
-			echo '
-		<tr onclick="togglePreview(' . $id . ', \'' . $url . '\')" style="cursor:pointer;">
-			<td class="text-success font-weight-bold">' . $i . '</td>
-			<td>' . $reference . '</td>
-			<td>' . $typeLabel . '</td>
-			<td>' . $date . '</td>
-
-			<td style="text-align:center; cursor:pointer;">';
-
-			$isChecked = ($f['checked'] === "0" || $f['checked'] === 0);
-
-			if ($isChecked) {
-
-				echo "
-					<i class='fa-solid fa-toggle-on fa-2x text-success checklist-toggle'
-					id='attachmentchecklist_" . $id . "'
-					data-id='" . $id . "'
-					data-value='0'
-					onclick='toggleChecklist(this, event)';>
-					</i>
-				";
-			} else {
-
-				echo "
-					<i class='fa-solid fa-toggle-off fa-2x text-danger checklist-toggle'
-					id='attachmentchecklist_" . $id . "'
-					data-id='" . $id . "'
-					data-value='1'
-					onclick='toggleChecklist(this, event)';>
-					</i>
-				";
-			}
-
-			echo '
-			</td>
-		</tr>
-
-		<tr id="preview-' . $id . '" style="display:none;">
-			<td colspan="5">
-				<iframe src="" style="width:100%;height:400px;border:1px solid #ddd;"></iframe>
-			</td>
-		</tr>
-		';
-
-			$i++;
+			echo "</tr>";
+			
 		}
-
-		echo "
-		</tbody>
-		</table>
-	</div>
-	</div>
-
-	<div class='card border border-danger mt-3'>
-	<div class='card-header bg-danger text-white'>
-		<h6 class='mb-0'>Reviewer Action</h6>
-	</div>
-
-	<div class='card-body'>
-
-		<!-- Remarks -->
-		<!--
-		<div class='form-group'>
-		<label class='font-weight-bold'>Remarks</label>
-		<textarea class='form-control' rows='4' placeholder='Enter your remarks here...' id='reviewattachremarks'></textarea>
-		</div>
-		-->
-
-		<!-- Buttons -->
-		<div class='d-flex justify-content-center mt-3' style='gap:10px;'>
-
-		<button class='btn btn-success px-4'
-				id='markasreviewed_" . $f['snap_id'] . "'
-				data-datavalue=" . $f['snap_id'] . "
-				data-userid=" . $user['UserID'] . "
-				data-pubpos=" . $getpubpos[0]['pubpos_id'] . "
-				>
-			<i class='fa fa-check mr-1'></i> Mark as Reviewed
-		</button>
-
-		</div>
-
-	</div>
-	</div>
-
-	<script>
-	function togglePreview(id, url) {
-		const row = document.getElementById('preview-' + id);
-		const iframe = row.querySelector('iframe');
-
-		const isOpen = row.style.display === 'table-row';
-
-		if (!isOpen) {
-			iframe.src = url;
-			row.style.display = 'table-row';
-		} else {
-			iframe.src = '';
-			row.style.display = 'none';
-		}
-	}
-
-	function toggleChecklist(el, event = null) {
-
-		if (event) event.stopPropagation();
-
-		const id = el.getAttribute('data-id');
-		const current = el.getAttribute('data-value');
-
-		const newValue = (current == '0') ? 1 : 0;
-
-		fetch('backend/bk_amreviewattachments.php', {
-			method: 'POST',
-			body: new URLSearchParams({
-				request: 'update_checklist',
-				id: id,
-				checked: newValue
-			})
-		})
-		.then(res => res.json())
-		.then(res => {
-			if (res.success) {
-
-				if (newValue == 0) {
-					el.classList.remove('fa-toggle-off', 'text-danger');
-					el.classList.add('fa-toggle-on', 'text-success');
-					el.setAttribute('data-value', '0');
-				} else {
-					el.classList.remove('fa-toggle-on', 'text-success');
-					el.classList.add('fa-toggle-off', 'text-danger');
-					el.setAttribute('data-value', '1');
-				}
-
-			} else {
-				alert('Update failed');
-			}
-		})
-		.catch(() => {
-			alert('Error updating checklist');
-		});
-	}
-	</script>
-	";
-
-		break;
-
+		echo "</tr>";
+		
+		echo "</tbody>";
+		echo "</table>";
+		
+	break;
+	
 	case "update_checklist":
 
 		$id = intval($_POST['id'] ?? 0);

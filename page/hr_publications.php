@@ -417,16 +417,21 @@ include "modals.php";
 
         var fetchdata = $(this);
 
-        var position_title = $('#position_title').val();
-        var appoint_id = $('#appoint_id').val();
-        var sg_id = $('#sg_id').val();
-        var office_id = $('#office_id').val();
-        var educ_qual = $('#educ_qual').val();
-        var exp = $('#exp').val();
-        var training = $('#training').val();
-        var competencies = $('#competencies_hidden').val();
-        var eligibilities = $('#eligibility_hidden').val();
-
+		var data =	{
+                        job_type: $('#job_type').val(),
+                        position_title: $('#position_title').val(),
+                        appoint_id: $('#appoint_id').val(),
+                        sg_id:  $('#sg_id').val(),
+                        office_id:  $('#office_id').val(),
+                        educ_qual: $('#educ_qual').val(),
+                        exp: $('#exp').val(),
+                        training: $('#training').val(),
+                        eligibilities: $('#eligibility_hidden').val(),
+                        competencies:  $('#competencies_hidden').val(),
+                        datavalue: fetchdata.data('datavalue'),
+                        request: "saveposition",
+                        userid: UserInfo['UserID']
+                    }
         Swal.fire({
             title: "Are you sure?",
             text: "Have you reviewed everything before saving?",
@@ -442,20 +447,7 @@ include "modals.php";
                 $.ajax({
                     url: "backend/bk_hrpublications.php",
                     method: "POST",
-                    data: {
-                        position_title: position_title,
-                        appoint_id: appoint_id,
-                        sg_id: sg_id,
-                        office_id: office_id,
-                        educ_qual: educ_qual,
-                        exp: exp,
-                        training: training,
-                        eligibilities: eligibilities,
-                        competencies: competencies,
-                        datavalue: fetchdata.data('datavalue'),
-                        request: "saveposition",
-                        userid: UserInfo['UserID']
-                    },
+                    data: data,
                     dataType: "json",
                     beforeSend: function(xhr) {
                         $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);

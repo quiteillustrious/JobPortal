@@ -62,7 +62,7 @@ include "modals.php";
         <div class="container-fluid">
             <div class="row align-items-center">
                 <div class="col-sm-6">
-                    <h1>Preliminary Evaluation</h1>
+                    <h1>Scoreboard for Recruitment and Selection</h1>
                 </div>
             </div>
         </div>
@@ -119,8 +119,9 @@ include "modals.php";
     <script>
         DivLoader(
             'positionstableloader',
-            'backend/bk_amreviewattachments.php', {
-                request: 'fetchpositions'
+            'backend/bk_am_scoreboard.php', {
+                request: 'fetchpositions',
+                RID: UserInfo["RID"]
             }
         );
 
@@ -144,7 +145,7 @@ include "modals.php";
                 if (result.isConfirmed) {
 
                     $.ajax({
-                        url: 'backend/bk_amreviewattachments.php',
+                        url: 'backend/bk_am_scoreboard.php',
                         method: "POST",
                         data: {
                             request: "mark_as_reviewed",
@@ -171,7 +172,7 @@ include "modals.php";
                                 $('#attachmentmodal').modal('hide');
 
                                 $.ajax({
-                                    url: 'backend/bk_amreviewattachments.php',
+                                    url: 'backend/bk_am_scoreboard.php',
                                     method: "POST",
                                     data: {
                                         request: "fetchapplicants",
@@ -234,7 +235,7 @@ include "modals.php";
             $(this).addClass('table-selected');
 
             $.ajax({
-                url: 'backend/bk_amreviewattachments.php',
+                url: 'backend/bk_am_scoreboard.php',
                 method: "POST",
                 data: {
                     request: "fetchpositions",
@@ -260,9 +261,10 @@ include "modals.php";
 
             $('#positionstableloader tr').removeClass('table-selected');
             $(this).addClass('table-selected');
-
+			/* var datacheck = $(this).data("datavalue");
+			console.log(datacheck); */
             $.ajax({
-                url: 'backend/bk_amreviewattachments.php',
+                url: 'backend/bk_am_scoreboard.php',
                 method: "POST",
                 data: {
                     request: "fetchapplicants",
@@ -291,16 +293,18 @@ include "modals.php";
             var fetchdata = $(this);
 
             $.ajax({
-                url: "backend/bk_amreviewattachments.php",
+                url: "backend/bk_am_scoreboard.php",
                 method: "POST",
                 data: {
                     request: "attachmentreviewer",
-                    datavalue: fetchdata.data("datavalue")
+                    datavalue: fetchdata.data("datavalue"),
+					RID: UserInfo["RID"]
                 },
                 beforeSend: function() {
                     $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
                 },
                 success: function(dataResult) {
+					console.log(dataResult);
                     $("#loadingSpinner").fadeOut(200, function() {
                         $("#loadingSpinner").css("display", "none");
                     });

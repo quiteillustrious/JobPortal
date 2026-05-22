@@ -117,6 +117,8 @@ include "modals.php";
     </div>
 
     <script>
+	
+	var currentPosId = "";
         DivLoader(
             'positionstableloader',
             'backend/bk_am_scoreboard.php', {
@@ -256,9 +258,9 @@ include "modals.php";
             });
 
         });
-
+			
         $(document).off('click', '[id^="fetchapplicants_"]').on('click', '[id^="fetchapplicants_"]', function() {
-
+			currentPosId = $(this).data("datavalue");	
             $('#positionstableloader tr').removeClass('table-selected');
             $(this).addClass('table-selected');
 			/* var datacheck = $(this).data("datavalue");
@@ -268,7 +270,9 @@ include "modals.php";
                 method: "POST",
                 data: {
                     request: "fetchapplicants",
-                    datavalue: $(this).data("datavalue")
+                    datavalue: $(this).data("datavalue"),
+                    UserID: UserInfo["UserID"],
+                    RID: UserInfo["RID"],
                 },
 
                 beforeSend: function() {
@@ -298,13 +302,14 @@ include "modals.php";
                 data: {
                     request: "attachmentreviewer",
                     datavalue: fetchdata.data("datavalue"),
-					RID: UserInfo["RID"]
+					RID: UserInfo["RID"],
+					UserID: UserInfo["UserID"]
                 },
                 beforeSend: function() {
                     $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
                 },
                 success: function(dataResult) {
-					console.log(dataResult);
+					//console.log(dataResult);
                     $("#loadingSpinner").fadeOut(200, function() {
                         $("#loadingSpinner").css("display", "none");
                     });
@@ -321,4 +326,87 @@ include "modals.php";
                 }
             });
         });
-    </script>
+   
+		$(document).off('click', '[id^="SubmitSb"]').on('click', '[id^="SubmitSb"]', function(e) {
+
+            e.stopPropagation();
+			var data = getFormData("#attachmentmodalcontent");
+			
+            var fetchdata = $(this).data();
+			
+			var newdata = {
+				...data,
+				...fetchdata
+			};
+			console.log(newdata);
+			
+            $.ajax({
+                url: "backend/bk_am_scoreboard.php",
+                method: "POST",
+                data: newdata,
+                beforeSend: function() {
+                    $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+                },
+                success: function(dataResult) {
+					var datajson = JSON.parse(dataResult);
+					
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+				   $('#attachmentmodal').modal('hide');
+
+					Swal.fire({
+						title: datajson.title,
+						text: datajson.message,
+						icon: datajson.result,
+						showConfirmButton: false,
+						scrollbarPadding: false
+					}).then((result) => {
+						
+							$.ajax({
+								url: 'backend/bk_am_scoreboard.php',
+								method: "POST",
+								data: {
+									request: "fetchapplicants",
+									datavalue: currentPosId,
+									UserID: UserInfo["UserID"],
+									RID: UserInfo["RID"],
+								},
+
+								beforeSend: function() {
+									$("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+								},
+
+								success: function(response) {
+									$("#loadingSpinner").fadeOut(200, function() {
+										$("#loadingSpinner").css("display", "none");
+									});
+
+									$("#applicants-container").html(response);
+								}
+							});
+					});
+                  
+                },
+                error: function(xhr, status, error) {
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+                    console.error("Error occurred:", error);
+                }
+            });
+        });
+  
+
+
+	function getFormData(formSelector) {
+		let data = {};
+		$(formSelector).find("input, select, textarea").each(function () {
+			const id = $(this).attr("id");
+			if (id) {
+				data[id] = $(this).val();
+			}
+		});
+		return data;
+	}
+  </script>

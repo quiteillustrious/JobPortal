@@ -15,7 +15,9 @@ $operator = isset($_POST["operator"]) ? $_POST["operator"] : "";
 $datavalue = isset($_POST["datavalue"]) ? $_POST["datavalue"] : "";
 $logslocation = isset($_POST["logslocation"]) ? $_POST["logslocation"] : "";
 $userid = isset($_POST["userid"]) ? $_POST["userid"] : "";
+$UserID = isset($_POST["UserID"]) ? $_POST["UserID"] : "";
 $RID = isset($_POST["RID"]) ? $_POST["RID"] : "";
+$pubposid = isset($_POST["pubposid"]) ? $_POST["pubposid"] : "";
 
 $currentdt = date("Y-m-d H:i:s");
 
@@ -149,7 +151,8 @@ switch ($request) {
 		break;
 
 	case "fetchapplicants":
-		$fetchapplicants = execsqlSRS(
+		if($RID <= 3){
+			$fetchapplicants = execsqlSRS(
 			"
 			SELECT
 				snap.snap_id,
@@ -159,9 +162,10 @@ switch ($request) {
 				userdet.MiddleName,
 				snap.AppliedDate,
 				score.snap_id AS scored
+				
 			FROM tbl_Snapshot snap
 			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
-
+			
 			OUTER APPLY (
 				SELECT TOP 1
 					u.LastName,
@@ -177,7 +181,6 @@ switch ($request) {
 					[snap_id]
 				FROM [tbl_SnapshotSB] u
 				WHERE u.[snap_id] = snap.[snap_id]
-				AND u.[pubpos_id] = $datavalue
 				ORDER BY u.snap_id
 			) score
 			
@@ -189,7 +192,51 @@ switch ($request) {
 			"Select",
 			array(intval($datavalue))
 		);
+			
+		}else{
+		$fetchapplicants = execsqlSRS(
+			"
+			SELECT
+				snap.snap_id,
+				snap.UserID,
+				userdet.LastName,
+				userdet.FirstName,
+				userdet.MiddleName,
+				snap.AppliedDate,
+				score.snap_id AS scored
+				
+			FROM tbl_Snapshot snap
+			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
+			
+			OUTER APPLY (
+				SELECT TOP 1
+					u.LastName,
+					u.FirstName,
+					u.MiddleName
+				FROM tbl_SnapshotUser u
+				WHERE u.UserID = snap.UserID
+				ORDER BY u.UserID
+			) userdet
+			
+			OUTER APPLY (
+				SELECT TOP 1
+					[snap_id]
+				FROM [tbl_SnapshotSB] u
+				WHERE u.[snap_id] = snap.[snap_id] AND u.commmitte_id = '$UserID'
+				ORDER BY u.snap_id
+			) score
+			
+			
+			WHERE dr.IsQual = '0' AND snap.pubpos_id = ?
 
+			ORDER BY userdet.FirstName
+		",
+			"Select",
+			array(intval($datavalue))
+		);
+		
+		}
+		
 		$fetchposition = execsqlSRS("
             SELECT  pos.[pubpos_id]
                     ,pos.[position_title]
@@ -235,6 +282,7 @@ switch ($request) {
 
 			foreach ($fetchapplicants as $app) {
 
+				$snap_id = htmlspecialchars($app["snap_id"] ?? '');
 				$scored = htmlspecialchars($app["scored"] ?? '');
 				$lastname = htmlspecialchars($app["LastName"] ?? '');
 				$firstname = htmlspecialchars($app["FirstName"] ?? '');
@@ -251,6 +299,7 @@ switch ($request) {
 
 				echo "<tr id='attachmentreviewer_" . htmlspecialchars($app['snap_id']) . "'
 					  data-datavalue='" . htmlspecialchars($app['snap_id']) . "'
+					  data-pubposid='" . $datavalue . "'
 					  data-userid='" . htmlspecialchars($app['UserID']) . "'
 					  data-openmodallabel='" . htmlspecialchars($fullname) . "'
 				  >";
@@ -262,8 +311,15 @@ switch ($request) {
 				echo "<td>$formattedDate</td>";
 				if($scored == "" || $scored == null){
 						echo "<td><span class='badge badge-danger p-2'>No Score Yet</span></td>";
+				}else if($RID <= 3){
+						echo "<td><span class='badge badge-success p-2'>Check Scores</span></td>";
 				}else{
-					
+					$getsum = execsqlSRS("SELECT SUM(score) as total
+										FROM [tbl_SnapshotSB] WHERE 
+										[snap_id] = '$snap_id' AND commmitte_id = '$UserID'", "SELECT", []);
+										
+					$total = $getsum[0]["total"] ?? "";
+						echo "<td><span class='badge badge-success p-2'>Score: ".$total." </span></td>";
 				}
 			
 				echo "</tr>";
@@ -287,50 +343,192 @@ switch ($request) {
 		break;
 
 	case "attachmentreviewer":
+	$UserID = isset($_POST["UserID"]) ? $_POST["UserID"] : "";
+	$datavalue = isset($_POST["datavalue"]) ? $_POST["datavalue"] : "";
+	if($RID <= 3){
 		
+		$getallrecords = execsqlSRS("
+		SELECT
+		SUM(sb.score) as total
+		FROM [tbl_SnapshotSB] sb
+		LEFT JOIN [tbl_Snapshot] ss ON ss.snap_id = sb.snap_id
+		WHERE sb.[snap_id] = '$datavalue'
+		","SELECT",[]);
+		
+		echo "<table class='table table-hover mb-0' style='width: 100%;'>";
+		echo "<tbody>";
+		echo "<tr>";
+		foreach($getallrecords as $first){
+			$total = $first["total"] ?? "";
+			echo '<td colspan = 2 style="width: 50%; text-align:center; background: green; color: white;">'.$total.'</td>';
+		}
+		echo "</tr>";
+		echo "</tbody>";
+		echo "</table>";
+	}else{
+	$checkrecord = execsqlSRS("SELECT * FROM tbl_SnapshotSB
+								WHERE [commmitte_id] = '$UserID' AND [snap_id] = '$datavalue'
+								","SELECT",[]);
+							
 		$getcriteria = execsqlSRS("SELECT 
 						[col_id]
 					  ,[mothercol_id]
 					  ,[rating_col]
 					  ,[max_value]
-					  ,[IsActive] FROM [tbl_SnapshotSBCol] WHERE [mothercol_id] = '0'", "SELECT", array());
+					  ,[IsActive] FROM [tbl_SnapshotSBCol] WHERE [mothercol_id] = '0' AND IsActive = '0'", "SELECT", array());
 
 		echo "<table class='table table-hover mb-0' style='width: 100%;'>";
 		echo "<tbody>";
 		
 		
 		echo "<tr>";
+		
 		foreach($getcriteria as $first){
 			$Mother = $first["col_id"] ?? "";
 			$Title = $first["rating_col"] ?? "";
 			$Points = $first["max_value"] ?? "";
 			
-			echo '<td style="width: 50%; text-align:center;">'.$Title. " ( " . $Points . " ) " .'</td>';
-			echo "<tr>";
+			echo '<td colspan = 2 style="width: 50%; text-align:center; background: green; color: white;">'.$Title. " ( " . $Points . " ) " .'</td>';
+			
+			if(!$checkrecord){	
+			
 			$getchild = execsqlSRS("SELECT 
 						[col_id]
 					  ,[mothercol_id]
 					  ,[rating_col]
 					  ,[max_value]
-					  ,[IsActive] FROM [tbl_SnapshotSBCol] WHERE [mothercol_id] = '$Mother'", "SELECT", array());
-				foreach($getchild  as $second){
-					$Mother2 = $second["col_id"] ?? "";
-					$Title2 = $second["rating_col"] ?? "";
-					$Points2 = $second["max_value"] ?? "";
+					  ,[IsActive] FROM [tbl_SnapshotSBCol] WHERE [mothercol_id] = '$Mother'  AND IsActive = '0'", "SELECT", array());
+					foreach($getchild  as $second){
+						$Mother2 = $second["col_id"] ?? "";
+						$Title2 = $second["rating_col"] ?? "";
+						$Points2 = $second["max_value"] ?? "";
+						echo "<tr>";
+						echo '<td style="width: 50%; ">'.$Title2. " ( " . $Points2 . " ) " .'</td>';
+						echo '<td style="width: 50%; ">Score: 
+						<input  type="number"
+							class="form-control" id="'.$Mother2.'" min="0" max="'.$Points2.'"
+							oninput="
+								if(this.value > '.$Points2.') {
+									this.value = '.$Points2.';
+								}
+							">
+						</td>';
+						echo "</tr>";
+						
+					}
+				
+				}else{
 					
-					echo '<td style="width: 50%; text-align:center;">'.$Title2. " ( " . $Points2 . " ) " .'</td>';
 					
+					$getchild2 = execsqlSRS("SELECT 
+						s.[col_id]
+						,s.[score]
+					  ,sb.[mothercol_id]
+					  ,sb.[rating_col]
+					  ,sb.[max_value]
+					  ,sb.[IsActive]
+					  FROM [tbl_SnapshotSBCol] sb
+					  LEFT JOIN [tbl_SnapshotSB] s ON s.[col_id] = sb.[col_id]
+					  WHERE sb.[mothercol_id] = '$Mother'  AND sb.IsActive = '0'
+					  AND s.[commmitte_id] = '$UserID' AND s.[snap_id] = '$datavalue'", "SELECT", array());
+					foreach($getchild2  as $second2){
+						
+						$rating_col = $second2["rating_col"] ?? "";
+						$score = $second2["score"] ?? "";
+						
+						$Points2 = $second2["max_value"] ?? "";
+						echo "<tr>";
+						echo '<td style="width: 50%; ">'.$rating_col. " ( " . $Points2 . " ) " .'</td>';
+						echo '<td style="width: 50%; ">Score: '.$score.'
+						</td>';
+						echo "</tr>";
+						
+					}
 					
 				}
-			echo "</tr>";
-			
 		}
-		echo "</tr>";
 		
+		echo "</tr>";
 		echo "</tbody>";
 		echo "</table>";
 		
+		if(!$checkrecord){	
+	
+		echo "<div class='float-right m-2'>
+				<button id='SubmitSb'class='btn btn-success'
+				data-snapid=".$datavalue."
+				data-committeid=".$UserID."
+				data-request='savescore'
+				>Submit Score</button>
+			 </div>
+			  ";
+		}else{
+			$getchild3 = execsqlSRS("SELECT 
+				      SUM(score) as total
+					  FROM [tbl_SnapshotSB] 
+					  WHERE [commmitte_id] = '$UserID' AND [snap_id] = '$datavalue'", "SELECT", array());
+			$total = $getchild3[0]["total"]	?? "";	  
+			echo "<div class='btn btn-success float-right'>Total Score: ".$total."</div>";
+		}
+	}
+	
+	
 	break;
+	
+	
+	
+	case"savescore":
+	$committeid = isset($_POST["committeid"]) ? $_POST["committeid"] : "";
+	$snapid = isset($_POST["snapid"]) ? $_POST["snapid"] : "";
+	
+	$checkrecord = execsqlSRS("SELECT TOP 1 [commmitte_id] FROM tbl_SnapshotSB
+								WHERE [commmitte_id] = '$committeid' AND [snap_id] = '$snapid'
+								","SELECT",[]);
+	if($checkrecord){
+			echo json_encode(["title"=>"Already Scored", "result"=>"info", "message"=>"You have already scored this applicant"]);			
+			return;
+	}
+	
+	
+	foreach($_POST as $key => $value){
+		
+    if(in_array($key, ["request", "committeid", "snapid"])) {
+        continue;
+    }
+  
+    $col_id = $key;
+    $score  = $value;
+		if($score == "" || $score == null){
+			echo json_encode(["title"=>"Check", "result"=>"info", "message"=>"Please fill all fields"]);	
+			return;			
+		}					
+	}
+	
+	foreach($_POST as $key => $value){
+		
+    if(in_array($key, ["request", "committeid", "snapid"])) {
+        continue;
+    }
+  
+    $col_id = $key;
+    $score  = $value;
+	
+	$insert = execsqlSRS("INSERT INTO [tbl_SnapshotSB] (snap_id, [commmitte_id], col_id, score)
+							VALUES(:snap_id, :commmitte_id, :col_id, :score)","Insert",
+							[
+							":snap_id"=>$snapid,
+							":commmitte_id"=>$committeid,
+							":col_id"=>$col_id,
+							":score"=>$score
+							]);			
+	}
+	
+	echo json_encode(["title"=>"Success", "result"=>"success", "message"=>"Successfully save the score."]);
+	
+	break;
+	
+	
+	
 	
 	case "update_checklist":
 

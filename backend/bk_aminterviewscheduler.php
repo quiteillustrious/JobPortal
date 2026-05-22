@@ -255,4 +255,63 @@ switch ($request) {
 		}
 
 		break;
+
+	case "saveapplicantschedule":
+
+		break;
+
+
+	case "viewevents":
+
+
+
+		$data = [
+			[
+				"title" => "Examination",
+				"start" => "2026-05-13T13:00:00",
+				"end" => "2026-05-13T14:30:00",
+				"backgroundColor" => "#dc3545",
+				"borderColor" => "#dc3545",
+				"textColor" => "#fff"
+			],
+
+			[
+				"title" => "Initial Interview",
+				"start" => "2026-05-15T12:00:00",
+				"end" => "2026-05-15T17:00:00",
+				"backgroundColor" => "#28a745",
+				"borderColor" => "#28a745",
+				"textColor" => "#fff"
+			],
+
+			[
+				"title" => "Final Interview",
+				"start" => "2026-05-18T07:00:00",
+				"end" => "2026-05-18T17:00:00",
+				"backgroundColor" => "#17a2b8",
+				"borderColor" => "#17a2b8",
+				"textColor" => "#fff"
+			],
+
+			[
+				"title" => "Final Exam",
+				"start" => "2026-05-18T07:00:00",
+				"end" => "2026-05-18T17:00:00",
+				"backgroundColor" => "#17a2b8",
+				"borderColor" => "#17a2b8",
+				"textColor" => "#fff"
+			],
+
+			[
+				"title" => "Final Exam",
+				"start" => "2026-06-17T07:00:00",
+				"end" => "2026-06-17T17:00:00",
+				"backgroundColor" => "#17a2b8",
+				"borderColor" => "#17a2b8",
+				"textColor" => "#fff"
+			]
+		];
+
+		echo json_encode($data);
+		break;
 }

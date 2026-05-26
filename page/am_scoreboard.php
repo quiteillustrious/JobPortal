@@ -303,7 +303,8 @@ include "modals.php";
                     request: "attachmentreviewer",
                     datavalue: fetchdata.data("datavalue"),
 					RID: UserInfo["RID"],
-					UserID: UserInfo["UserID"]
+					UserID: UserInfo["UserID"],
+					fullname: fetchdata.data('openmodallabel')
                 },
                 beforeSend: function() {
                     $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
@@ -325,7 +326,48 @@ include "modals.php";
                     console.error("Error occurred:", error);
                 }
             });
+        });     
+
+
+		$(document).off('click', '[id^="fecthbreakdown"]').on('click', '[id^="fecthbreakdown"]', function(e) {
+
+            e.stopPropagation();
+
+            var fetchdata = $(this).data();
+			
+			var data = {
+				UserID : fetchdata.committeid,
+				datavalue : fetchdata.datavalue,
+				fullname : fetchdata.fullname,
+				request : "viewbreakdown"
+			};
+			
+            $.ajax({
+                url: "backend/bk_am_scoreboard.php",
+                method: "POST",
+                data: data,
+                beforeSend: function() {
+                    $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+                },
+                success: function(dataResult) {
+					//console.log(dataResult);
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+
+                    $('#attachmentmodallabel').html("Points Breakdown");
+                    $('#attachmentmodalcontent').html(dataResult);
+                    $('#attachmentmodal').modal('show');
+                },
+                error: function(xhr, status, error) {
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+                    console.error("Error occurred:", error);
+                }
+            });
         });
+		
    
 		$(document).off('click', '[id^="SubmitSb"]').on('click', '[id^="SubmitSb"]', function(e) {
 

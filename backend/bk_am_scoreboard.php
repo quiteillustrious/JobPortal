@@ -18,6 +18,7 @@ $userid = isset($_POST["userid"]) ? $_POST["userid"] : "";
 $UserID = isset($_POST["UserID"]) ? $_POST["UserID"] : "";
 $RID = isset($_POST["RID"]) ? $_POST["RID"] : "";
 $pubposid = isset($_POST["pubposid"]) ? $_POST["pubposid"] : "";
+$fullname = isset($_POST["fullname"]) ? $_POST["fullname"] : "";
 
 $currentdt = date("Y-m-d H:i:s");
 
@@ -346,25 +347,70 @@ switch ($request) {
 	$UserID = isset($_POST["UserID"]) ? $_POST["UserID"] : "";
 	$datavalue = isset($_POST["datavalue"]) ? $_POST["datavalue"] : "";
 	if($RID <= 3){
+		$gradescommitte = execsqlSRS("SELECT DISTINCT [commmitte_id], [snap_id] FROM tbl_SnapshotSB
+										WHERE snap_id = '$datavalue'", "SELECT", []);
+										
+		echo "<table class='table table-hover mb-0' style='width: 100%;'>";
+		echo "<thead>";
+		echo "<th style='text-align: center;'>Committee";
+		echo "</th>";	
+		echo "<th style='text-align: center;'>Score";
+		echo "</th>";	
+		echo "</thead>";
+		echo "<tbody>";
+			
 		
-		$getallrecords = execsqlSRS("
+			foreach($gradescommitte as $com){
+				echo "<tr>";
+				$user = $com["commmitte_id"] ?? "";
+				$snapid = $com["snap_id"] ?? "";
+				
+				$fetchnames = execsqlSRS("SELECT CONCAT(FirstName, ' ', LastName) as FullName, UserID FROM Sys_UserAccount WHERE UserID = '$user'","SELECT",[]);		
+					
+				foreach($fetchnames as $names){
+					$FullName = $names["FullName"] ?? "";
+					$userID = $names["UserID"] ?? "";
+					
+					$getrecords = execsqlSRS("SELECT SUM(score) as total FROM tbl_SnapshotSB WHERE snap_id ='$datavalue'
+											AND commmitte_id = '$userID'", "SELECT", []);
+					
+					foreach($getrecords as $rec){
+						$total = $rec["total"] ?? "";
+						
+						echo '<td  style="width: 50%; text-align:center; background: green; color: white;"
+								id="fecthbreakdown" data-committeid ='.$user.' 
+								data-fullname="'.$fullname.'"
+								data-datavalue ='.$snapid.' >'.$FullName. '</td>';
+						echo '<td  style="width: 50%; text-align:center;">'.$total. '</td>';
+					}
+				
+				}
+				
+				
+				
+				
+				echo "</tr>";
+			}
+			
+		
+		echo "</tbody>";
+		echo "</table>";
+		/* $getallrecords = execsqlSRS("
 		SELECT
+		(SELECT DISTINCT commmitte_id FROM tbl_SnapshotSB) as committe,
 		SUM(sb.score) as total
 		FROM [tbl_SnapshotSB] sb
 		LEFT JOIN [tbl_Snapshot] ss ON ss.snap_id = sb.snap_id
 		WHERE sb.[snap_id] = '$datavalue'
-		","SELECT",[]);
+		","SELECT",[]); */
 		
-		echo "<table class='table table-hover mb-0' style='width: 100%;'>";
-		echo "<tbody>";
-		echo "<tr>";
-		foreach($getallrecords as $first){
+		
+		/* foreach($getallrecords as $first){
 			$total = $first["total"] ?? "";
-			echo '<td colspan = 2 style="width: 50%; text-align:center; background: green; color: white;">'.$total.'</td>';
-		}
-		echo "</tr>";
-		echo "</tbody>";
-		echo "</table>";
+			$committe = $first["committe"] ?? "";
+			echo '<td colspan = 2 style="width: 50%; text-align:center; background: green; color: white;">'.$committe.$total.'</td>';
+		} */
+		
 	}else{
 	$checkrecord = execsqlSRS("SELECT * FROM tbl_SnapshotSB
 								WHERE [commmitte_id] = '$UserID' AND [snap_id] = '$datavalue'
@@ -475,6 +521,78 @@ switch ($request) {
 	
 	break;
 	
+	
+	case "viewbreakdown":
+	
+	$checkrecord = execsqlSRS("SELECT * FROM tbl_SnapshotSB
+								WHERE [commmitte_id] = '$UserID' AND [snap_id] = '$datavalue'
+								","SELECT",[]);
+							
+		$getcriteria = execsqlSRS("SELECT 
+						[col_id]
+					  ,[mothercol_id]
+					  ,[rating_col]
+					  ,[max_value]
+					  ,[IsActive] FROM [tbl_SnapshotSBCol] WHERE [mothercol_id] = '0' AND IsActive = '0'", "SELECT", array());
+
+		echo "<table class='table table-hover mb-0' style='width: 100%;'>";
+		echo "<tbody>";
+		
+		
+		echo "<tr>";
+		
+		foreach($getcriteria as $first){
+			$Mother = $first["col_id"] ?? "";
+			$Title = $first["rating_col"] ?? "";
+			$Points = $first["max_value"] ?? "";
+			
+			echo '<td colspan = 2 style="width: 50%; text-align:center; background: green; color: white;">'.$Title. " ( " . $Points . " ) " .'</td>';
+			
+					$getchild2 = execsqlSRS("SELECT 
+						s.[col_id]
+						,s.[score]
+					  ,sb.[mothercol_id]
+					  ,sb.[rating_col]
+					  ,sb.[max_value]
+					  ,sb.[IsActive]
+					  FROM [tbl_SnapshotSBCol] sb
+					  LEFT JOIN [tbl_SnapshotSB] s ON s.[col_id] = sb.[col_id]
+					  WHERE sb.[mothercol_id] = '$Mother'  AND sb.IsActive = '0'
+					  AND s.[commmitte_id] = '$UserID' AND s.[snap_id] = '$datavalue'", "SELECT", array());
+					foreach($getchild2  as $second2){
+						
+						$rating_col = $second2["rating_col"] ?? "";
+						$score = $second2["score"] ?? "";
+						
+						$Points2 = $second2["max_value"] ?? "";
+						echo "<tr>";
+						echo '<td style="width: 50%; ">'.$rating_col. " ( " . $Points2 . " ) " .'</td>';
+						echo '<td style="width: 50%; ">Score: '.$score.'
+						</td>';
+						echo "</tr>";
+						
+					}
+		}
+		
+		echo "</tr>";
+		echo "</tbody>";
+		echo "</table>";
+	
+		$getchild3 = execsqlSRS("SELECT 
+				      SUM(score) as total
+					  FROM [tbl_SnapshotSB] 
+					  WHERE [commmitte_id] = '$UserID' AND [snap_id] = '$datavalue'", "SELECT", array());
+			$total = $getchild3[0]["total"]	?? "";	  
+			
+			echo "<div class='btn btn-info float-right m-2'
+			id='attachmentreviewer_" . $datavalue . "'
+			data-datavalue='" . $datavalue . "'
+			data-userid='" .$UserID . "'
+			data-openmodallabel='" . $fullname . "'
+			>Back</div>";
+			echo "<div class='btn btn-success float-right m-2'>Total Score: ".$total."</div>";
+		
+	break;
 	
 	
 	case"savescore":

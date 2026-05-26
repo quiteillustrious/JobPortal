@@ -402,12 +402,14 @@ switch ($request) {
 	if($RID <= 3){
 		$gradescommitte = execsqlSRS("SELECT DISTINCT [commmitte_id], [snap_id] FROM tbl_SnapshotSB
 										WHERE snap_id = '$datavalue'", "SELECT", []);
-										
+		echo"<span class='card'> ↓ Click the name to see breakdown results</span>";								
 		echo "<table class='table table-hover mb-0' style='width: 100%;'>";
 		echo "<thead>";
 		echo "<th style='text-align: center;'>Committee";
 		echo "</th>";	
 		echo "<th style='text-align: center;'>Score";
+		echo "</th>";	
+		echo "<th style='text-align: center;'>Comments / Remarks";
 		echo "</th>";	
 		echo "</thead>";
 		echo "<tbody>";
@@ -432,17 +434,23 @@ switch ($request) {
 					$FullName = $names["FullName"] ?? "";
 					$userID = $names["UserID"] ?? "";
 					
-					$getrecords = execsqlSRS("SELECT SUM(score) as total FROM tbl_SnapshotSB WHERE snap_id ='$datavalue'
-											AND commmitte_id = '$userID'", "SELECT", []);
+					$getrecords = execsqlSRS("SELECT SUM(score) as total FROM tbl_SnapshotSB WHERE snap_id ='$datavalue' AND commmitte_id = '$userID'", "SELECT", []);
 					
-					foreach($getrecords as $rec){
-						$total = $rec["total"] ?? 0;
-						
-						echo '<td  style="width: 50%; text-align:center; background: green; color: white;"
-								id="fecthbreakdown" data-committeid ='.$user.' 
-								data-fullname="'.$fullname.'"
-								data-datavalue ='.$snapid.' >'.$FullName. '</td>';
-						echo '<td  style="width: 50%; text-align:center;">'.$total. '</td>';
+					$getcomment = execsqlSRS("SELECT TOP 1 [comments] FROM [tbl_SnapshotSBComments]
+								WHERE [commmitte_id] = '$userID' AND [snap_id] = '$datavalue'", "SELECT", []);
+				
+					foreach($getcomment as $com){
+						$comment = $com["comments"] ?? 0;
+						foreach($getrecords as $rec){
+							$total = $rec["total"] ?? 0;
+							
+							echo '<td  style="width: 33.33%; text-align:center; background: green; color: white;"
+									id="fecthbreakdown" data-committeid ='.$user.' 
+									data-fullname="'.$fullname.'"
+									data-datavalue ='.$snapid.' >'.$FullName. '</td>';
+							echo '<td  style="width: 33.33%; text-align:center;">'.$total. '</td>';
+							echo '<td  style="width: 33.33%; text-align:center;">'.$comment. '</td>';
+						}
 					}
 					
 				}
@@ -450,7 +458,6 @@ switch ($request) {
 				
 				echo "</tr>";
 			
-				
 			}
 		
 		echo "</tbody>";
@@ -524,6 +531,7 @@ switch ($request) {
 						
 					}
 				
+		
 				}else{
 					
 					
@@ -555,6 +563,20 @@ switch ($request) {
 				}
 		}
 		
+		$getcomment = execsqlSRS("SELECT TOP 1 [comments] FROM [tbl_SnapshotSBComments]
+								WHERE [commmitte_id] = '$UserID' AND [snap_id] = '$datavalue'", "SELECT", []);
+								
+			if($getcomment){
+				$comment = $getcomment[0]["comments"] ?? "";
+			echo '<td colspan = 2 style="width: 50%; text-align:center; ">
+			<label>Comments / Remarks:</label>
+			<textarea readonly class="form-control" p>"'.$comment.'"</textarea></td>';
+			}else{
+			echo '<td colspan = 2 style="width: 50%; text-align:center; ">
+			<label>Comments / Remarks:</label>
+			<textarea id="comment_section" class="form-control" placeholder="Please input your comment here."></textarea></td>';
+			}
+	
 		echo "</tr>";
 		echo "</tbody>";
 		echo "</table>";
@@ -638,7 +660,19 @@ switch ($request) {
 		echo "</tr>";
 		echo "</tbody>";
 		echo "</table>";
-	
+		$getcomment = execsqlSRS("SELECT TOP 1 [comments] FROM [tbl_SnapshotSBComments]
+								WHERE [commmitte_id] = '$UserID' AND [snap_id] = '$datavalue'", "SELECT", []);
+								
+			if($getcomment){
+				$comment = $getcomment[0]["comments"] ?? "";
+			echo '<td colspan = 2 style="width: 50%; text-align:center; ">
+			<label>Comments / Remarks:</label>
+			<textarea readonly class="form-control" p>"'.$comment.'"</textarea></td>';
+			}else{
+			'<td colspan = 2 style="width: 50%; text-align:center; ">
+			<label>Comments / Remarks:</label>
+			<textarea readonly class="form-control" p>"No Comment"</textarea></td>';
+			}
 		$getchild3 = execsqlSRS("SELECT 
 				      SUM(score) as total
 					  FROM [tbl_SnapshotSB] 
@@ -658,6 +692,7 @@ switch ($request) {
 	
 	case"savescore":
 	$committeid = isset($_POST["committeid"]) ? $_POST["committeid"] : "";
+	$comment_section = isset($_POST["comment_section"]) ? $_POST["comment_section"] : "";
 	$snapid = isset($_POST["snapid"]) ? $_POST["snapid"] : "";
 	
 	$checkrecord = execsqlSRS("SELECT TOP 1 [commmitte_id] FROM tbl_SnapshotSB
@@ -668,10 +703,17 @@ switch ($request) {
 			return;
 	}
 	
-	
+	$insert2 = execsqlSRS("INSERT INTO [tbl_SnapshotSBComments] (snap_id, [commmitte_id], [comments])
+							VALUES(:snap_id, :commmitte_id, :comments)","Insert",
+							[
+							":snap_id"=>$snapid,
+							":commmitte_id"=>$committeid,
+							":comments"=>$comment_section
+							]);	
+							
 	foreach($_POST as $key => $value){
 		
-    if(in_array($key, ["request", "committeid", "snapid"])) {
+    if(in_array($key, ["request", "committeid", "comment_section", "snapid"])) {
         continue;
     }
   
@@ -685,7 +727,7 @@ switch ($request) {
 	
 	foreach($_POST as $key => $value){
 		
-    if(in_array($key, ["request", "committeid", "snapid"])) {
+    if(in_array($key, ["request", "committeid", "comment_section", "snapid"])) {
         continue;
     }
   

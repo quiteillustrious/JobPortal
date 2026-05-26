@@ -409,8 +409,8 @@ switch ($request) {
 		echo "</th>";	
 		echo "<th style='text-align: center;'>Score";
 		echo "</th>";	
-		echo "<th style='text-align: center;'>Comments / Remarks";
-		echo "</th>";	
+		/* echo "<th style='text-align: center;'>Comments / Remarks";
+		echo "</th>";	 */
 		echo "</thead>";
 		echo "<tbody>";
 			
@@ -436,11 +436,11 @@ switch ($request) {
 					
 					$getrecords = execsqlSRS("SELECT SUM(score) as total FROM tbl_SnapshotSB WHERE snap_id ='$datavalue' AND commmitte_id = '$userID'", "SELECT", []);
 					
-					$getcomment = execsqlSRS("SELECT TOP 1 [comments] FROM [tbl_SnapshotSBComments]
+					/* $getcomment = execsqlSRS("SELECT TOP 1 [comments] FROM [tbl_SnapshotSBComments]
 								WHERE [commmitte_id] = '$userID' AND [snap_id] = '$datavalue'", "SELECT", []);
-				
-					foreach($getcomment as $com){
-						$comment = $com["comments"] ?? 0;
+				 */
+					//foreach($getcomment as $com){
+						//$comment = $com["comments"] ?? 0;
 						foreach($getrecords as $rec){
 							$total = $rec["total"] ?? 0;
 							
@@ -449,9 +449,9 @@ switch ($request) {
 									data-fullname="'.$fullname.'"
 									data-datavalue ='.$snapid.' >'.$FullName. '</td>';
 							echo '<td  style="width: 33.33%; text-align:center;">'.$total. '</td>';
-							echo '<td  style="width: 33.33%; text-align:center;">'.$comment. '</td>';
+						//	echo '<td  style="width: 33.33%; text-align:center;">'.$comment. '</td>';
 						}
-					}
+					//}
 					
 				}
 				$avg += $total;

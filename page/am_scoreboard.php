@@ -304,6 +304,7 @@ include "modals.php";
                     datavalue: fetchdata.data("datavalue"),
 					RID: UserInfo["RID"],
 					UserID: UserInfo["UserID"],
+					userid: fetchdata.data("userid"),
 					fullname: fetchdata.data('openmodallabel')
                 },
                 beforeSend: function() {

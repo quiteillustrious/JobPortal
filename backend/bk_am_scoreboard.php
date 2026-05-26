@@ -162,10 +162,11 @@ switch ($request) {
 				userdet.FirstName,
 				userdet.MiddleName,
 				snap.AppliedDate,
-				score.snap_id AS scored
-				
+				score.snap_id AS scored,
+				sbr.[avg_points]
 			FROM tbl_Snapshot snap
 			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
+			LEFT JOIN [tbl_SnapshotSBRanking] sbr ON sbr.snap_id = snap.snap_id
 			
 			OUTER APPLY (
 				SELECT TOP 1
@@ -185,14 +186,15 @@ switch ($request) {
 				ORDER BY u.snap_id
 			) score
 			
-			
 			WHERE dr.IsQual = '0' AND snap.pubpos_id = ?
 
-			ORDER BY userdet.FirstName
+			ORDER BY sbr.[avg_points] DESC
 		",
 			"Select",
 			array(intval($datavalue))
 		);
+		
+		
 			
 		}else{
 		$fetchapplicants = execsqlSRS(
@@ -204,10 +206,11 @@ switch ($request) {
 				userdet.FirstName,
 				userdet.MiddleName,
 				snap.AppliedDate,
-				score.snap_id AS scored
-				
+				score.snap_id AS scored,
+				SUM(sbb.score) as sumscore
 			FROM tbl_Snapshot snap
 			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
+			LEFT JOIN [tbl_SnapshotSB] sbb ON sbb.[snap_id] = snap.[snap_id] AND sbb.commmitte_id = '$UserID'
 			
 			OUTER APPLY (
 				SELECT TOP 1
@@ -229,8 +232,11 @@ switch ($request) {
 			
 			
 			WHERE dr.IsQual = '0' AND snap.pubpos_id = ?
-
-			ORDER BY userdet.FirstName
+				
+			GROUP BY snap.snap_id, snap.UserID,userdet.LastName,
+				userdet.FirstName,
+				userdet.MiddleName,snap.AppliedDate, score.snap_id
+			ORDER BY sumscore DESC
 		",
 			"Select",
 			array(intval($datavalue))
@@ -280,10 +286,11 @@ switch ($request) {
 		if (!empty($fetchapplicants)) {
 
 			$i = 1;
-
+			
 			foreach ($fetchapplicants as $app) {
 
 				$snap_id = htmlspecialchars($app["snap_id"] ?? '');
+				$userid = htmlspecialchars($app["UserID"] ?? '');
 				$scored = htmlspecialchars($app["scored"] ?? '');
 				$lastname = htmlspecialchars($app["LastName"] ?? '');
 				$firstname = htmlspecialchars($app["FirstName"] ?? '');
@@ -311,9 +318,54 @@ switch ($request) {
 
 				echo "<td>$formattedDate</td>";
 				if($scored == "" || $scored == null){
-						echo "<td><span class='badge badge-danger p-2'>No Score Yet</span></td>";
+					echo "<td><span class='badge badge-danger p-2'>No Score Yet</span></td>";
 				}else if($RID <= 3){
-						echo "<td><span class='badge badge-success p-2'>Check Scores</span></td>";
+					
+				$gradescommitte = execsqlSRS("SELECT DISTINCT [commmitte_id], [snap_id] FROM tbl_SnapshotSB
+										WHERE snap_id = '$snap_id'", "SELECT", []);	
+										
+				$avg = 0;
+				$sumavg = 0;
+				if(count($gradescommitte) == 0){
+					$counternumber = 1;
+				}else{
+					$counternumber = count($gradescommitte);
+				}
+				$count = $counternumber ?? 1;
+				foreach($gradescommitte as $com){
+				$user = $com["commmitte_id"] ?? "";
+				$snapid = $com["snap_id"] ?? "";
+				
+				$fetchnames = execsqlSRS("SELECT CONCAT(FirstName, ' ', LastName) as FullName, UserID FROM Sys_UserAccount WHERE UserID = '$user'","SELECT",[]);		
+					
+					foreach($fetchnames as $names){
+						$FullName = $names["FullName"] ?? "";
+						$userID = $names["UserID"] ?? "";
+						
+						$getrecords = execsqlSRS("SELECT SUM(score) as total FROM tbl_SnapshotSB WHERE snap_id ='$snap_id'AND commmitte_id = '$userID'", "SELECT", []);
+						
+						foreach($getrecords as $rec){
+							$total = $rec["total"] ?? 0;
+						}
+						
+					}
+					$avg += $total;
+				
+				}
+				$sumavg = $avg / $count;
+				
+				echo "<td><span class='badge badge-success p-2'>Total Average: ".$sumavg."</span></td>";
+				
+				$checkranking = execsqlSRS("SELECT TOP 1 [rank_id] FROM [tbl_SnapshotSBRanking] 
+											WHERE [snap_id] = '$snap_id' AND [UserID] = '$userid'", "SELECT",[]);
+					if($checkranking){
+						$updaterank = execsqlSRS("UPDATE [tbl_SnapshotSBRanking] SET [avg_points] = '$sumavg'
+						WHERE [snap_id] = '$snap_id' AND [UserID] = '$userid'", "Update", []);
+					}else{
+						$insertranking = execsqlSRS("INSERT INTO tbl_SnapshotSBRanking 
+						([avg_points], [snap_id], [UserID]) VALUES ('$sumavg','$snap_id','$userid')","Insert", []);
+					}
+					
 				}else{
 					$getsum = execsqlSRS("SELECT SUM(score) as total
 										FROM [tbl_SnapshotSB] WHERE 
@@ -340,7 +392,8 @@ switch ($request) {
 		echo "</table>";
 		echo "</div>";
 		echo "</div>";
-
+		
+		
 		break;
 
 	case "attachmentreviewer":
@@ -359,7 +412,15 @@ switch ($request) {
 		echo "</thead>";
 		echo "<tbody>";
 			
+		$avg = 0;
+
+		if(count($gradescommitte) == 0){
+			$countnumber = 1;
+		}else{
+			$countnumber = count($gradescommitte);
+		}
 		
+		$count = $countnumber ?? 1;
 			foreach($gradescommitte as $com){
 				echo "<tr>";
 				$user = $com["commmitte_id"] ?? "";
@@ -375,7 +436,7 @@ switch ($request) {
 											AND commmitte_id = '$userID'", "SELECT", []);
 					
 					foreach($getrecords as $rec){
-						$total = $rec["total"] ?? "";
+						$total = $rec["total"] ?? 0;
 						
 						echo '<td  style="width: 50%; text-align:center; background: green; color: white;"
 								id="fecthbreakdown" data-committeid ='.$user.' 
@@ -383,18 +444,18 @@ switch ($request) {
 								data-datavalue ='.$snapid.' >'.$FullName. '</td>';
 						echo '<td  style="width: 50%; text-align:center;">'.$total. '</td>';
 					}
-				
+					
 				}
-				
-				
-				
+				$avg += $total;
 				
 				echo "</tr>";
-			}
 			
+				
+			}
 		
 		echo "</tbody>";
 		echo "</table>";
+		echo "<div class='btn btn-success float-right'>Total Average: ".$avg / $count."</div>";
 		/* $getallrecords = execsqlSRS("
 		SELECT
 		(SELECT DISTINCT commmitte_id FROM tbl_SnapshotSB) as committe,

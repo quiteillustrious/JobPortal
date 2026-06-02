@@ -216,15 +216,30 @@ include "modals.php";
 
             eventClick: function(info) {
 
-                Swal.fire({
-                    title: info.event.title,
-                    html: `
-                            <b>Date:</b><br>
-                            ${info.event.start.toLocaleString()}
-                        `,
-                    icon: 'success',
-                    confirmButtonColor: '#28a745',
-                    scrollbarPadding: false
+                var snapsched_id = info.event.extendedProps.snapsched_id;
+
+                $.ajax({
+                    url: 'backend/bk_aminterviewscheduler.php',
+                    method: "POST",
+                    data: {
+                        request: "viewevent",
+                        datavalue: snapsched_id
+                    },
+
+                    beforeSend: function() {
+                        $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+                    },
+
+                    success: function(response) {
+                        $("#loadingSpinner").fadeOut(200, function() {
+                            $("#loadingSpinner").css("display", "none");
+                        });
+
+                        $("#addeditcontent").html(response);
+                        $("#addeditlabel").html("View Schedule");
+                        $("#addeditmodal").modal("show");
+
+                    }
                 });
 
             },
@@ -234,7 +249,7 @@ include "modals.php";
                 method: 'POST',
 
                 extraParams: {
-                    request: 'viewevents'
+                    request: 'fetchevents'
                 },
 
                 failure: function(error) {
@@ -338,7 +353,7 @@ include "modals.php";
                     type: "POST",
 
                     data: {
-                        request: "saveevent",
+                        request: "saveapplicantschedule",
 
                         schedule_title: schedule_title,
                         schedule_description: schedule_description,
@@ -350,6 +365,7 @@ include "modals.php";
 
                         userid: UserInfo["UserID"]
                     },
+                    dataType: "json",
 
                     beforeSend: function() {
 
@@ -365,58 +381,26 @@ include "modals.php";
                             $("#loadingSpinner").css("display", "none");
                         });
 
-                        console.log("Raw Response:", dataResult);
-
-                        let res;
-
-                        try {
-
-                            res = typeof dataResult === "object" ?
-                                dataResult :
-                                JSON.parse(dataResult);
-
-                        } catch (err) {
-
-                            console.error("JSON Parse Error:", err);
-                            console.error("Server Response:", dataResult);
-
-                            Swal.fire({
-                                title: "Invalid Response",
-                                text: "The server returned invalid JSON.",
-                                icon: "error",
-                                scrollbarPadding: false
-                            });
-
-                            return;
-                        }
-
-                        if (res.status === "success") {
+                        if (dataResult.status === "success") {
 
                             Swal.fire({
                                 title: "Saved!",
-                                text: res.message,
+                                text: dataResult.message,
                                 icon: "success",
                                 confirmButtonText: "OK",
                                 scrollbarPadding: false
                             });
 
-                            $("#schedulediv").find("input").val("");
-                            $("#schedule_vacancy").val("");
+                            $("#addeditmodal").modal("hide");
 
-                            selectedApplicants = [];
-
-                            $("#applicantsdropdown").html(`
-                            <span class="font-weight-bold text-danger">
-                                Select a Vacancy First...
-                            </span>
-                        `);
+                            initializeJobCalendar();
 
                         } else {
 
-                            let errorText = res.message || "Something went wrong.";
+                            let errorText = dataResult.message || "Something went wrong.";
 
-                            if (res.errors && res.errors.length > 0) {
-                                errorText += "\n\n" + res.errors.join("\n");
+                            if (dataResult.errors && dataResult.errors.length > 0) {
+                                errorText += "\n\n" + dataResult.errors.join("\n");
                             }
 
                             Swal.fire({

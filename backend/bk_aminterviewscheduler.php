@@ -258,60 +258,316 @@ switch ($request) {
 
 	case "saveapplicantschedule":
 
+		$schedule_title = isset($_POST["schedule_title"]) ? $_POST["schedule_title"] : "";
+		$schedule_description = isset($_POST["schedule_description"]) ? $_POST["schedule_description"] : "";
+		$schedule_startdate = isset($_POST["schedule_startdate"]) ? $_POST["schedule_startdate"] : "";
+		$schedule_enddate = isset($_POST["schedule_enddate"]) ? $_POST["schedule_enddate"] : "";
+		$schedule_vacancy = isset($_POST["schedule_vacancy"]) ? $_POST["schedule_vacancy"] : "";
+		$applicants = isset($_POST["applicants"])
+			? json_decode($_POST["applicants"], true)
+			: [];
+
+		$schedule_startdate = date('Y-m-d H:i:s', strtotime($schedule_startdate));
+		$schedule_enddate = date('Y-m-d H:i:s', strtotime($schedule_enddate));
+
+		$insertsched = execsqlSRS("
+			INSERT INTO tbl_SnapshotSched
+			(
+				sched_title,
+				sched_desc,
+				start_date,
+				end_date,
+				created_by,
+				created_at,
+				IsActive
+			)
+			VALUES
+			(
+				?, ?, ?, ?, ?, ?, 0
+			)
+		", "Insert", array(
+			$schedule_title,
+			$schedule_description,
+			$schedule_startdate,
+			$schedule_enddate,
+			$userid,
+			$currentdt
+		));
+
+		$selectsched = execsqlSRS("
+			SELECT TOP 1 [snapsched_id], [sched_title], [sched_desc]
+			FROM [tbl_SnapshotSched]
+			WHERE [created_by] = ?
+			ORDER BY [snapsched_id] DESC
+		", "Select", array(
+			$userid
+		));
+
+		$snapsched_id = $selectsched[0]['snapsched_id'];
+		$sched_desc = $selectsched[0]['sched_desc'];
+		$sched_title = $selectsched[0]['sched_title'];
+
+		foreach ($applicants as $snap_id) {
+
+			$sql = execsqlSRS("
+            INSERT INTO tbl_SnapshotSchedLib
+            (
+                snapsched_id,
+                snap_id,
+                IsActive
+            )
+            VALUES
+            (
+                ?, ?, 0
+            )
+		", "Insert", array(
+				$snapsched_id,
+				$snap_id
+			));
+
+			$insertnotifs = execsqlSRS("
+				INSERT INTO tbl_Notifications
+				(
+					notif_title,
+					notif_message,
+					color_id,
+					UserID,
+					target_url,
+					IsRead,
+					IsActive
+				)
+				VALUES
+				(
+					?, ?, 2, ?, 'applicationstatus.php', 1, 0
+				)
+			", "Insert", array(
+				$sched_title,
+				$sched_desc,
+				$snap_id,
+			));
+
+			$updatesnapshot = execsqlSRS("
+				UPDATE [tbl_Snapshot]
+				SET [snap_status] = 6
+				    [UpdatedAt] = ?
+				WHERE [snap_id] = ?
+				", "Update", array(
+				$currentdt,
+				$snap_id
+			));
+
+			$insertsnaphistory = execsqlSRS("
+				INSERT INTO [tbl_SnapshotHistory]
+				(
+					[snap_id]
+					,[snap_status]
+					,[changed_at]
+					,[changed_by]
+					,[remarks]
+					,[IsActive]
+				)
+					VALUES(?, 6, ?, ?, 'Interview and Examination', '0')
+				", "Insert", array(
+				$snap_id,
+				$currentdt,
+				$userid,
+			));
+		}
+
+		echo json_encode([
+			"status" => "success",
+			"message" => "Event has been successfully scheduled."
+		]);
+
 		break;
 
 
-	case "viewevents":
+	case "fetchevents":
 
+		$events = execsqlSRS("
+		SELECT
+			snapsched_id,
+			sched_title,
+			start_date,
+			end_date
+		FROM tbl_SnapshotSched
+		WHERE IsActive = 0
+	", "Select", []);
 
+		$data = [];
 
-		$data = [
-			[
-				"title" => "Examination",
-				"start" => "2026-05-13T13:00:00",
-				"end" => "2026-05-13T14:30:00",
-				"backgroundColor" => "#dc3545",
-				"borderColor" => "#dc3545",
-				"textColor" => "#fff"
-			],
+		foreach ($events as $event) {
 
-			[
-				"title" => "Initial Interview",
-				"start" => "2026-05-15T12:00:00",
-				"end" => "2026-05-15T17:00:00",
-				"backgroundColor" => "#28a745",
-				"borderColor" => "#28a745",
-				"textColor" => "#fff"
-			],
-
-			[
-				"title" => "Final Interview",
-				"start" => "2026-05-18T07:00:00",
-				"end" => "2026-05-18T17:00:00",
+			$data[] = [
+				"snapsched_id" => $event["snapsched_id"],
+				"title" => $event["sched_title"],
+				"start" => date('Y-m-d\TH:i:s', strtotime($event["start_date"])),
+				"end" => date('Y-m-d\TH:i:s', strtotime($event["end_date"])),
 				"backgroundColor" => "#17a2b8",
 				"borderColor" => "#17a2b8",
 				"textColor" => "#fff"
-			],
-
-			[
-				"title" => "Final Exam",
-				"start" => "2026-05-18T07:00:00",
-				"end" => "2026-05-18T17:00:00",
-				"backgroundColor" => "#17a2b8",
-				"borderColor" => "#17a2b8",
-				"textColor" => "#fff"
-			],
-
-			[
-				"title" => "Final Exam",
-				"start" => "2026-06-17T07:00:00",
-				"end" => "2026-06-17T17:00:00",
-				"backgroundColor" => "#17a2b8",
-				"borderColor" => "#17a2b8",
-				"textColor" => "#fff"
-			]
-		];
+			];
+		}
 
 		echo json_encode($data);
+		break;
+
+	case "viewevent":
+
+		$snapsched_id = isset($_POST["datavalue"])
+			? intval($_POST["datavalue"])
+			: 0;
+
+		if ($snapsched_id <= 0) {
+			echo '
+            <div class="alert alert-danger">
+                Invalid Schedule ID.
+            </div>
+        ';
+			exit;
+		}
+
+		$schedule = execsqlSRS("
+        SELECT
+            snapsched_id,
+            sched_title,
+            sched_desc,
+            start_date,
+            end_date,
+            created_at
+        FROM tbl_SnapshotSched
+        WHERE snapsched_id = ?
+    ", "Select", array(
+			$snapsched_id
+		));
+
+		if (empty($schedule)) {
+			echo '
+            <div class="alert alert-danger">
+                Schedule not found.
+            </div>
+        ';
+			exit;
+		}
+
+		$schedule = $schedule[0];
+
+		$applicants = execsqlSRS("
+        SELECT
+            su.LastName,
+            su.FirstName,
+            su.ExtName,
+            su.Sex
+        FROM tbl_SnapshotSchedLib ssl
+        INNER JOIN tbl_SnapshotUser su
+            ON ssl.snap_id = su.snap_id
+        WHERE ssl.snapsched_id = ?
+        AND ssl.IsActive = 0
+        ORDER BY su.LastName ASC, su.FirstName ASC
+    ", "Select", array(
+			$snapsched_id
+		));
+?>
+
+		<div class="container-fluid">
+
+			<div class="row mb-3">
+				<div class="col-md-12">
+					<label class="fw-bold">Schedule Title</label>
+					<div class="form-control bg-light">
+						<?php echo htmlspecialchars($schedule['sched_title']); ?>
+					</div>
+				</div>
+			</div>
+
+			<div class="row mb-3">
+				<div class="col-md-12">
+					<label class="fw-bold">Description</label>
+					<div class="form-control bg-light" style="min-height:100px;">
+						<?php echo nl2br(htmlspecialchars($schedule['sched_desc'])); ?>
+					</div>
+				</div>
+			</div>
+
+			<div class="row mb-3">
+
+				<div class="col-md-6">
+					<label class="fw-bold">Start Date</label>
+					<div class="form-control bg-light">
+						<?php echo date('F d, Y h:i A', strtotime($schedule['start_date'])); ?>
+					</div>
+				</div>
+
+				<div class="col-md-6">
+					<label class="fw-bold">End Date</label>
+					<div class="form-control bg-light">
+						<?php echo date('F d, Y h:i A', strtotime($schedule['end_date'])); ?>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="row">
+				<div class="col-md-12">
+
+					<label class="fw-bold">
+						Applicants Scheduled (<?php echo count($applicants); ?>)
+					</label>
+
+					<div class="table-responsive">
+
+						<table class="table table-bordered table-hover align-middle">
+							<thead class="table-success">
+								<tr>
+									<th width="80%">Full Name</th>
+									<th width="20%">Sex</th>
+								</tr>
+							</thead>
+							<tbody>
+
+								<?php if (!empty($applicants)) { ?>
+
+									<?php foreach ($applicants as $applicant) {
+
+										$fullname =
+											$applicant['LastName'] . ', ' .
+											$applicant['FirstName'];
+
+										$extname = trim($applicant['ExtName']);
+
+										if (!empty($extname) && strtolower($extname) !== 'n/a') {
+											$fullname .= ' ' . $extname;
+										}
+									?>
+
+										<tr>
+											<td><?php echo htmlspecialchars($fullname); ?></td>
+											<td><?php echo htmlspecialchars($applicant['Sex']); ?></td>
+										</tr>
+
+									<?php } ?>
+
+								<?php } else { ?>
+
+									<tr>
+										<td colspan="2" class="text-center text-muted">
+											No applicants found.
+										</td>
+									</tr>
+
+								<?php } ?>
+
+							</tbody>
+						</table>
+
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+
+<?php
+
 		break;
 }

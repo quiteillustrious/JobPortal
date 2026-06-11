@@ -13,9 +13,9 @@ $currentdt = date("Y-m-d H:i:s");
 
 switch ($request) {
 
-case "viewapplicationstatus":
+    case "viewapplicationstatus":
 
-    $viewapplicationstatus = execsqlSRS("
+        $viewapplicationstatus = execsqlSRS("
         SELECT  s.[snap_id]
                 ,s.[pubpos_id]
                 ,p.[position_title]
@@ -36,9 +36,9 @@ case "viewapplicationstatus":
 
         WHERE s.[UserID] = ?
         ORDER BY s.[AppliedDate] DESC
-    ","Select",array($userid));
+    ", "Select", array($userid));
 
-    echo '
+        echo '
     <div class="card shadow-sm border border-success">
     <div class="card-header bg-success text-white">
         <h5 class="mb-0">My Applications</h5>
@@ -52,18 +52,17 @@ case "viewapplicationstatus":
             <th>Date Applied</th>
             <th>Position Applied</th>
             <th>Status</th>
-            <th>Remarks</th>
             </tr>
         </thead>
         <tbody>
     ';
 
-    if (!empty($viewapplicationstatus)) {
-        foreach ($viewapplicationstatus as $status) {
+        if (!empty($viewapplicationstatus)) {
+            foreach ($viewapplicationstatus as $status) {
 
-            $date = strtotime($status['AppliedDate']);
+                $date = strtotime($status['AppliedDate']);
 
-            echo '
+                echo '
             <tr>
 
                 <td class="text-success fw-semibold">
@@ -81,8 +80,8 @@ case "viewapplicationstatus":
 
                 <td>
                     <a href="#" class="text-decoration-none">
-                        ' . (!empty($status['position_title']) 
-                            ? '<span class="badge bg-success text-success border border-success px-3 py-2"
+                        ' . (!empty($status['position_title'])
+                    ? '<span class="badge bg-success text-success border border-success px-3 py-2"
                                 id="view_position_' . $status['pubpos_id'] . '"
                                 data-datavalue="' . $status['pubpos_id'] . '"
                                 data-backendurl="backend/bk_hrpublications.php"
@@ -94,7 +93,7 @@ case "viewapplicationstatus":
                                 >
                                     ' . htmlspecialchars($status['position_title']) . '
                             </span>'
-                            : '<span class="text-muted fst-italic">No position selected</span>') . '
+                    : '<span class="text-muted fst-italic">No position selected</span>') . '
                     </a>
                 </td>
 
@@ -115,43 +114,25 @@ case "viewapplicationstatus":
                     </a>
                 </td>
 
-                <td>
-                    <a href="#" class="text-decoration-none">
-                        <span class="badge bg-' . htmlspecialchars($status['color_desc']) . ' bg-opacity-10 text-' . htmlspecialchars($status['color_desc']) . ' border border-' . htmlspecialchars($status['color_desc']) . ' px-3 py-2"
-                                id="view_remarks_' . $status['pubpos_id'] . '"
-                                data-datavalue="' . $status['snap_id'] . '"
-                                data-backendurl="backend/bk_statusremarks.php"
-                                data-backendrequest="seeremarkshistory"
-                                data-openmodal="#addeditmodal"
-                                data-openmodallabel="View Remarks History - TAU-APP-' .  str_pad($status["snap_id"], 4, "0", STR_PAD_LEFT) . '"
-                                data-openmodalbody="#addeditcontent"                 
-                                data-tooltip="See Remarks History"
-                            >
-                            ' .  htmlspecialchars($status['status_desc']) . '
-                        </span>
-                    </a>
-                </td>
-
             </tr>
             ';
-        }
-    } else {
-        echo '
+            }
+        } else {
+            echo '
         <tr>
         <td colspan="5" class="text-center text-danger font-weight-bold py-4">
             No applications found.
         </td>
         </tr>
         ';
-    }
+        }
 
-    echo '
+        echo '
         </tbody>
         </table>
     </div>
     </div>
     ';
 
-break;
-
+        break;
 }

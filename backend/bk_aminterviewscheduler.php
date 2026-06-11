@@ -320,7 +320,7 @@ switch ($request) {
             (
                 ?, ?, 0
             )
-		", "Insert", array(
+			", "Insert", array(
 				$snapsched_id,
 				$snap_id
 			));

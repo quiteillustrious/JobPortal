@@ -426,6 +426,19 @@ switch ($request) {
             }
             $comp_html .= "</ul>";
 
+            //OP Decision
+            $opdecision = execsqlSRS("
+                SELECT lib.[opdecisionlib_desc]
+                FROM [tbl_SnapshotOPDecision] deci
+
+                LEFT JOIN [tbl_SnapshotOPDecisionLibrary] lib
+                ON deci.[opdecisionlib_id] = lib.[opdecisionlib_id]
+
+                WHERE snap_id = ?
+            ", "Select", array($snap_id));
+
+            $opdecisionstr = isset($opdecision[0]['opdecisionlib_desc']) ? $opdecision[0]['opdecisionlib_desc'] : 'n/a';
+
             echo "
             <tr>
                 <td>" . $i . "</td>
@@ -443,7 +456,7 @@ switch ($request) {
                 <td>" . $eli_html . "</td>
                 <td>" . $skill_html . "</td>
                 <td>" . $comp_html . "</td>
-                <td></td>
+                <td>" . $opdecisionstr . "</td>
                 <td>";
 
             $delremarks = execsqlSRS("
@@ -500,7 +513,6 @@ switch ($request) {
                             name='hrremarks_" . $snap_id . "'
                             class='form-control form-control-sm'>
                             <option value=''>Select remarks...</option><hr>";
-
 
                 $remarkLib = execsqlSRS("
                     SELECT [snapdelremlib_id]
@@ -641,7 +653,7 @@ switch ($request) {
             SELECT snap_id
             FROM tbl_SnapshotDelRem
             WHERE snap_id = ?
-        ", "Select", array($snap_id));
+            ", "Select", array($snap_id));
 
             if (!empty($check)) {
 

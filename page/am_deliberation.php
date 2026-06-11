@@ -220,7 +220,7 @@ include "modals.php";
             });
           });
 
-          alert(JSON.stringify(payload, null, 2));
+          //alert(JSON.stringify(payload, null, 2));
 
           $.ajax({
             url: "backend/bk_amdeliberation.php",

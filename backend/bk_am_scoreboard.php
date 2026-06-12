@@ -151,6 +151,98 @@ switch ($request) {
 
 		break;
 
+
+	case "updaterecordsofusers":
+	$fetchapplicants = execsqlSRS(
+			"
+			SELECT
+				snap.snap_id,
+				snap.UserID,
+				userdet.LastName,
+				userdet.FirstName,
+				userdet.MiddleName,
+				snap.AppliedDate,
+				score.snap_id AS scored,
+				sbr.[avg_points]
+			FROM tbl_Snapshot snap
+			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
+			LEFT JOIN [tbl_SnapshotSBRanking] sbr ON sbr.snap_id = snap.snap_id
+			
+			OUTER APPLY (
+				SELECT TOP 1
+					u.LastName,
+					u.FirstName,
+					u.MiddleName
+				FROM tbl_SnapshotUser u
+				WHERE u.UserID = snap.UserID
+				ORDER BY u.UserID
+			) userdet
+			
+			OUTER APPLY (
+				SELECT TOP 1
+					[snap_id]
+				FROM [tbl_SnapshotSB] u
+				WHERE u.[snap_id] = snap.[snap_id]
+				ORDER BY u.snap_id
+			) score
+			
+			WHERE dr.IsQual = '0' AND snap.pubpos_id = ?
+
+			ORDER BY sbr.[avg_points] DESC
+		",
+			"Select",
+			array(intval($datavalue))
+		);
+		
+		$getstatus_desc = execsqlSRS("SELECT [status_desc],[status_code] FROM [tbl_SnapshotStatus] where [snap_status] = '7' AND [IsActive] = '0'", "SELECT", []);
+		$status_desc = $getstatus_desc[0]["status_desc"] ?? "";
+		$status_code = $getstatus_desc[0]["status_code"] ?? "";
+		
+		foreach ($fetchapplicants as $app) {
+			$snap_id = htmlspecialchars($app["snap_id"] ?? '');
+			$UserID = htmlspecialchars($app["UserID"] ?? '');
+			
+			
+			$update = execsqlSRS("UPDATE [tbl_Snapshot] SET 
+				[snap_status] = '7',
+				[UpdatedAt] = GETDATE()
+				WHERE [snap_id] = '$snap_id' ","Update",[]);
+				
+			//History
+			$insert = execsqlSRS("INSERT INTO [tbl_SnapshotHistory]
+			([snap_id],[snap_status],[changed_at],[changed_by],[remarks],[IsActive])
+			VALUES
+			(:snap_id,:snap_status,GETDATE(),:changed_by,:remarks,:IsActive)
+			","Insert",[
+			":snap_id"=>$snap_id,
+			":snap_status"=>'7',
+			":changed_by"=>$userid,
+			":remarks"=>$status_desc,
+			":IsActive"=>'0',
+			]);		
+			//Notifications
+			$insert = execsqlSRS("INSERT INTO [tbl_Notifications]
+			([notif_title],[notif_message],[color_id],[UserID],[target_url],[IsRead],[IsActive])
+			VALUES
+			(:notif_title,:notif_message,:color_id,:UserID,:target_url,:IsRead,:IsActive)
+			","Insert",[
+			":notif_title"=>$status_code,
+			":notif_message"=>$status_desc,
+			":color_id"=>'2',
+			":UserID"=>$UserID,
+			":target_url"=>'applicationstatus.php',
+			":IsRead"=>'1',
+			":IsActive"=>'0',
+			]);
+		}
+		execsqlSRS("INSERT INTO [tbl_SnapShotSBChecker] ([pubpos_id],[IsActive]) VALUES ($datavalue, '0')","Insert",[]);
+		
+		echo json_encode(["title"=>"Success", "result"=>"success", "message"=>"Successfully save the score."]);
+		
+		
+	break;
+
+
 	case "fetchapplicants":
 		if($RID <= 3){
 			$fetchapplicants = execsqlSRS(
@@ -257,6 +349,9 @@ switch ($request) {
 		echo "<div class='card border border-success'>";
 
 		echo "<div class='card-body p-0 table-responsive'>";
+		
+		
+	
 
 		echo "<table class='table table-hover mb-0'>";
 
@@ -267,8 +362,22 @@ switch ($request) {
             <th colspan='10' style='position: sticky; top: 0; z-index: 20;'>
                 <div class='font-weight-bold ml-2'>
                     <span>
-                        Applicants for " . $fetchposition[0]['position_title'] . "
-                    </span>
+                        Applicants for " . $fetchposition[0]['position_title'] . "";
+						
+		//Check if already have a record
+		$checker = execsqlSRS("SELECT [pubpos_id] FROM [tbl_SnapShotSBChecker] 
+								WHERE [pubpos_id] = '$datavalue' AND IsActive = '0'", "SELECT", []);
+		if($RID <= 3 AND !$checker){				
+		echo "<button class='btn btn-warning float-right updaterecordsofusers' 
+				data-datavalue = ".$datavalue."
+				data-userid = ".$UserID."
+				data-request = 'updaterecordsofusers'
+				>Finalize Scores</button>";
+		}else if($RID <= 3 AND $checker ){
+			echo "<button class='btn btn-success float-right ' 
+				>Already Finalized</button>";
+		}
+       	echo "        </span>
                 </div>
             </th>
         </tr>";
@@ -744,7 +853,13 @@ switch ($request) {
 							]);			
 	}
 	
+	/* $update = execsqlSRS("UPDATE [tbl_Snapshot] SET 
+				[snap_status] = '7',
+				[UpdatedAt] = GETDATE()
+				WHERE [snap_id] = '$snapid' ","Update",[]);
+	 */
 	echo json_encode(["title"=>"Success", "result"=>"success", "message"=>"Successfully save the score."]);
+	
 	
 	break;
 	

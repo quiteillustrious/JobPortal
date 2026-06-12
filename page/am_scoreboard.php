@@ -257,7 +257,52 @@ include "modals.php";
                 }
             });
 
-        });
+        });       
+
+
+
+	$(document).off('click', '.updaterecordsofusers').on('click', '.updaterecordsofusers', function() {
+
+		var data = $(this).data();
+		
+		Swal.fire({
+			title: 'Are you sure?',
+			text: "This will finalize all records and notify the users, updating and inserting your approval as history",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Yes, update and save it!',
+			cancelButtonText: 'Cancel',
+			scrollbarPadding: false
+		}).then((result) => {
+			if(result.isConfirmed){
+			   
+				$.ajax({
+					url: 'backend/bk_am_scoreboard.php',
+					method: "POST",
+					data: data,
+					beforeSend: function() {
+						$("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+					},
+
+					success: function(response) {
+						$("#loadingSpinner").fadeOut(200, function() {
+							$("#loadingSpinner").css("display", "none");
+						});
+						var datajson = JSON.parse(response);
+						
+						Swal.fire({
+								title: datajson.title,
+								text: datajson.message,
+								icon: datajson.result,
+								showConfirmButton: false,
+								scrollbarPadding: false
+						});
+					}
+				});
+				
+			}
+		});
+	});
 			
         $(document).off('click', '[id^="fetchapplicants_"]').on('click', '[id^="fetchapplicants_"]', function() {
 			currentPosId = $(this).data("datavalue");	

@@ -325,6 +325,14 @@ switch ($request) {
 				$snap_id
 			));
 
+			$gettheuserid = execsqlSRS("
+				SELECT [UserID]
+				FROM [tbl_Snapshot]
+				WHERE [snap_id] = ?
+			", "Select", array($snap_id));
+
+			$realuserid = $gettheuserid[0]['UserID'] ?? "";
+
 			$insertnotifs = execsqlSRS("
 				INSERT INTO tbl_Notifications
 				(
@@ -343,12 +351,12 @@ switch ($request) {
 			", "Insert", array(
 				$sched_title,
 				$sched_desc,
-				$snap_id,
+				$realuserid,
 			));
 
 			$updatesnapshot = execsqlSRS("
 				UPDATE [tbl_Snapshot]
-				SET [snap_status] = 6
+				SET [snap_status] = 6,
 				    [UpdatedAt] = ?
 				WHERE [snap_id] = ?
 				", "Update", array(

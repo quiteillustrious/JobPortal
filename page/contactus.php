@@ -137,6 +137,11 @@ date_default_timezone_set('Asia/Manila');
                 </div>
                 <div class="contact-label">FB Page</div>
                 <div class="contact-text">
+                    <a href="https://www.facebook.com/tarlacagriculturaluniversity" target="_blank">
+                        TAU Facebook Page
+                    </a>
+                </div>
+                <div class="contact-text">
                     <a href="https://www.facebook.com/TAUHRMO" target="_blank">
                         TAU-HRMO Facebook Page
                     </a>

@@ -177,6 +177,7 @@ include "modals.php";
                     datavalue: $(this).data("datavalue"),
                     UserID: UserInfo["UserID"],
                     RID: UserInfo["RID"],
+					 title: currenttitle,
                 },
                 beforeSend: function() {
                     $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
@@ -211,6 +212,43 @@ include "modals.php";
                 method: "POST",
                 data: {
                     request: "attachmentreviewer",
+                    datavalue: fetchdata.data("datavalue"),
+                    pubposid: fetchdata.data("pubposid"),
+                    title: fetchdata.data("title"),
+                },
+                beforeSend: function() {
+                    $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+                },
+                success: function(dataResult) {
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+
+                    $('#attachmentmodallabel').html(fetchdata.data('openmodallabel'));
+                    $('#attachmentmodalcontent').html(dataResult);
+                    $('#attachmentmodal').modal('show');
+                },
+                error: function(xhr, status, error) {
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+                    console.error("Error occurred:", error);
+                }
+            });
+        });     
+
+
+		$(document).off('click', '[id^="SetCummulate"]').on('click', '[id^="SetCummulate"]', function(e) {
+
+            e.stopPropagation();
+
+            var fetchdata = $(this);
+			
+            $.ajax({
+                url: "backend/bk_Ranking.php",
+                method: "POST",
+                data: {
+                    request: "SetCummulate",
                     datavalue: fetchdata.data("datavalue"),
                     pubposid: fetchdata.data("pubposid"),
                     title: fetchdata.data("title"),

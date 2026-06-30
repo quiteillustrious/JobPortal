@@ -393,17 +393,20 @@ switch ($request) {
 					$formattedDate = date("l, F d, Y • h:i A", strtotime($rawDate));
 				}
 
-				echo "<tr id='attachmentreviewer_" . htmlspecialchars($app['snap_id']) . "'
+				echo "<tr 
+				  >";
+
+				echo "<td class='font-weight-bold text-success'>$i</td>";
+
+				echo "<td 
+				id='attachmentreviewer_" . htmlspecialchars($app['snap_id']) . "'
 					  data-datavalue='" . htmlspecialchars($app['snap_id']) . "'
 					  data-pubposid='" . $datavalue . "'
 					  data-userid='" . htmlspecialchars($app['UserID']) . "'
 					  data-title='" .$title. "'
 					  data-openmodallabel='" . htmlspecialchars($fullname) . "'
-				  >";
-
-				echo "<td class='font-weight-bold text-success'>$i</td>";
-
-				echo "<td class='font-weight-bold'>$fullname</td>";
+				
+				class='font-weight-bold'>$fullname</td>";
 
 				echo "<td>$formattedDate</td>";
 				if($scored == "" || $scored == null){
@@ -443,7 +446,13 @@ switch ($request) {
 				}
 				$sumavg = $avg / $count;
 				
-				echo "<td><span class='badge badge-success p-2'>Total Average: ".$sumavg."</span></td>";
+				echo "<td><button class='btn btn-success p-2' id='SetCummulate'
+					  data-datavalue='" . htmlspecialchars($app['snap_id']) . "'
+					  data-pubposid='" . $datavalue . "'
+					  data-userid='" . htmlspecialchars($app['UserID']) . "'
+					  data-title='" .$title. "'
+					  data-openmodallabel='" . htmlspecialchars($fullname) . "'
+				>Total Average: ".$sumavg."</button></td>";
 				
 				$checkranking = execsqlSRS("SELECT TOP 1 [rank_id] FROM [tbl_SnapshotSBRanking] 
 											WHERE [snap_id] = '$snap_id' AND [UserID] = '$userid'", "SELECT",[]);
@@ -1075,4 +1084,50 @@ switch ($request) {
 	";
 
 		break;
+		
+		
+		
+	case "SetCummulate":
+	
+	$SelectBreakdown = execsqlSRS("SELECT sbc.col_id, sbc.rating_col, SUM(sb.score) as Totalu  FROM[tbl_SnapshotSB] sb
+									LEFT JOIN [tbl_SnapshotSBCol] sbc ON sbc.col_id = sb.col_id
+									WHERE sb.snap_id = '$datavalue'
+									GROUP BY sbc.rating_col, sbc.col_id
+									ORDER BY sbc.col_id
+									","SELECT",[]);
+	echo "<table class='table'>";
+	echo "<thead class='table-success'>";
+	echo "<th>";
+	echo "Categories";
+	echo "</th>";	
+	echo "<th>";
+	echo "Accumulated Score";
+	echo "</th>";
+	echo "</thead>";
+	echo "<tbody>";
+
+	foreach($SelectBreakdown as $sb){
+			echo "<tr>";
+		$rating_col = $sb["rating_col"] ?? "";
+		$Totalu = $sb["Totalu"] ?? "";
+		echo"<td>";
+		echo $rating_col;
+		echo"</td>";		
+		echo"<td>";
+		echo $Totalu;
+		echo"</td>";
+		echo "</tr>";
+	}
+	
+	echo "</tbody>";
+	echo "</table>";
+	echo "
+		<div>
+	<button class='btn btn-info float-right' id='backList'
+	data-datavalue='$pubposid'
+	data-title='$title'
+	
+	>Back to List</button>
+	</div>";
+	break;
 }

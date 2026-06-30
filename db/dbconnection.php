@@ -46,8 +46,8 @@ function dbconES() {
 
         $dbh = new PDO(
             "sqlsrv:Server={$srsServer};Database={$srsDB}",
-            $srsUser,     
-            $srsPass      
+            $srsUser,
+            $srsPass
         );
 
         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -67,8 +67,6 @@ function dbconES() {
 function execsqlSRS($sql, $oper, $arr)
 {
 	$dbc = dbconES();
-
-
 
 	if ($oper == "Insert" or $oper == "Update" or $oper == "Delete") {
 
@@ -111,6 +109,3 @@ function dbconES()
 
 	return $dbh;
 }
-
-?>
-

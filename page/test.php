@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-center">
         <div class="card">
             <div class="card-title text-center pt-2 bg-success">
-                <h5 class="font-weight-bold">Test Card</h5>
+                <h5 class="font-weight-bold">Placeholder Card</h5>
             </div>
             <div class="card-body shadow-sm text-center">
                 <p>Test Card Body</p>
@@ -18,11 +18,11 @@
 
     <div class="d-flex justify-content-center">
         <ul class="list-group pt-2 pl-2 pr-2">
-            <li class="list-group-item">Cras justo odio</li>
-            <li class="list-group-item">Dapibus ac facilisis in</li>
-            <li class="list-group-item">Morbi leo risus</li>
-            <li class="list-group-item">Porta ac consectetur ac</li>
-            <li class="list-group-item">Vestibulum at eros</li>
+            <li class="list-group-item">Test 1</li>
+            <li class="list-group-item">Test 2</li>
+            <li class="list-group-item">Test 3</li>
+            <li class="list-group-item">Test 4</li>
+            <li class="list-group-item">Test 5</li>
         </ul>
     </div>
 
@@ -31,7 +31,7 @@
             <i class="fa-solid fa-mouse-pointer">
             </i>
             <span>
-                Click Me!
+                Button Click
             </span>
         </button>
     </div>
@@ -46,7 +46,8 @@
             url: "",
             method: "POST",
             data: {
-                request: "userlist"
+                request: "userlist",
+                user_id: UserInfo["UserID"]
             },
             success: function(dataresult) {
                 Swal.fire({
@@ -56,6 +57,15 @@
                 });
             },
             error: function(xhr, status, error) {
+
+                console.error('AJAX Error Details');
+                console.error('Status:', status);
+                console.error('Error:', error);
+                console.error('HTTP Status Code:', xhr.status);
+                console.error('Response Text:', xhr.responseText);
+                console.error('Response JSON:', xhr.responseJSON);
+                console.error('Full XHR Object:', xhr);
+
                 Swal.fire({
                     title: "Error!",
                     text: "There's an error clicking the button!",
@@ -64,6 +74,36 @@
                 console.error('AJAX Error:', error);
             }
 
+        });
+
+    });
+
+    $(document).off("click", "#testbutton2").on("click", "#testbutton2", function(e) {
+
+        $.ajax({
+            url: "backend/bk_test.php",
+            method: "POST",
+            data: {
+                request: "fetchbutton"
+            },
+            success: function(dataresult) {
+
+                Swal.fire({
+                    title: "Success!",
+                    text: "The button has been clicked!",
+                    icon: "success"
+                });
+
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error Details');
+                console.error('Status:', status);
+                console.error('Error:', error);
+                console.error('HTTP Status Code:', xhr.status);
+                console.error('Response Text:', xhr.responseText);
+                console.error('Response JSON:', xhr.responseJSON);
+                console.error('Full XHR Object:', xhr);
+            }
         });
 
     });

@@ -1,3 +1,14 @@
+<style>
+.modal-dialog{
+	max-width: 100%;
+	margin: 5px 5px;
+}
+.modal{
+	padding: 0px !important;
+}
+</style>
+
+
 <!-- Add/Edit Modal -->
 <div class="modal fade" id="addeditmodal" tabindex="-1" aria-labelledby="addeditlabel" aria-hidden="true" style="display: none;">
 	<div class="modal-dialog modal-lg">

@@ -247,7 +247,7 @@ switch ($request) {
 	break;
 
 
-	case "fetchapplicants":
+	/* case "fetchapplicants":
 		if($RID <= 3){
 			$fetchapplicants = execsqlSRS(
 			"
@@ -259,10 +259,12 @@ switch ($request) {
 				userdet.MiddleName,
 				snap.AppliedDate,
 				score.snap_id AS scored,
-				sbr.[avg_points]
+				sbr.[avg_points],
+				pp.[job_type]
 			FROM tbl_Snapshot snap
 			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
 			LEFT JOIN [tbl_SnapshotSBRanking] sbr ON sbr.snap_id = snap.snap_id
+			LEFT JOIN [tbl_PublicationPosition] pp ON pp.[pubpos_id] = snap.pubpos_id 
 			
 			OUTER APPLY (
 				SELECT TOP 1
@@ -349,21 +351,42 @@ switch ($request) {
             ", "Select", array(intval($datavalue)));
 
 		$totalApplicants = count($fetchapplicants);
+		
+		$getcriteria = execsqlSRS("SELECT 
+						[col_id]
+					  ,[mothercol_id]
+					  ,[rating_col]
+					  ,[max_value]
+					  ,[IsActive] FROM [tbl_SnapshotSBCol] WHERE [mothercol_id] = '0' AND IsActive = '0'", "SELECT", array());
 
+		//Ready for Type of Job NonTeaching or Faculty
+		$jobtype = $fetchapplicants[0]["job_type"] ?? "";
+		
+		if($jobtype == 1){
+			
+		}else{
+			//Add Structure for Faculty
+		}
+		
+		
 		echo "<div class='card border border-success'>";
 
 		echo "<div class='card-body p-0 table-responsive'>";
 		
 		
 	
-
+		echo "<label class='m-2'>II. Interview (20%)</label>";
 		echo "<table class='table table-hover mb-0'>";
-
+		
+		
+	
 		echo "<thead class='table-success'>";
+		
 
+		
 		echo "<tr>";
-		echo "<th>Rank</th>";
-		echo "<th>Name of Applicant</th>";
+		
+		echo "<th>Name of Applicants</th>";
 		echo "<th>Date of Application</th>";
 		echo "<th>Scores</th>";
 		echo "</tr>";
@@ -383,7 +406,7 @@ switch ($request) {
 				$lastname = htmlspecialchars($app["LastName"] ?? '');
 				$firstname = htmlspecialchars($app["FirstName"] ?? '');
 				$middlename = htmlspecialchars($app["MiddleName"] ?? '');
-
+				
 				$fullname = trim($firstname . " " . $middlename . " " . $lastname);
 
 				$rawDate = $app["AppliedDate"] ?? '';
@@ -392,12 +415,10 @@ switch ($request) {
 				if (!empty($rawDate)) {
 					$formattedDate = date("l, F d, Y • h:i A", strtotime($rawDate));
 				}
-
-				echo "<tr 
+				
+				echo "<tr  
 				  >";
-
-				echo "<td class='font-weight-bold text-success'>$i</td>";
-
+				
 				echo "<td 
 				id='attachmentreviewer_" . htmlspecialchars($app['snap_id']) . "'
 					  data-datavalue='" . htmlspecialchars($app['snap_id']) . "'
@@ -487,7 +508,278 @@ switch ($request) {
 		}
 
 		echo "</tbody>";
+		
+	
 		echo "</table>";
+		
+
+		echo "</div>";
+		echo "</div>";
+		
+		
+		break; */	
+		
+		
+		
+		
+		case "fetchapplicants":
+		if($RID <= 3){
+			$fetchapplicants = execsqlSRS(
+			"
+			SELECT
+				snap.snap_id,
+				snap.UserID,
+				userdet.LastName,
+				userdet.FirstName,
+				userdet.MiddleName,
+				snap.AppliedDate,
+				score.snap_id AS scored,
+				sbr.[avg_points],
+				pp.[job_type]
+			FROM tbl_Snapshot snap
+			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
+			LEFT JOIN [tbl_SnapshotSBRanking] sbr ON sbr.snap_id = snap.snap_id
+			LEFT JOIN [tbl_PublicationPosition] pp ON pp.[pubpos_id] = snap.pubpos_id 
+			
+			OUTER APPLY (
+				SELECT TOP 1
+					u.LastName,
+					u.FirstName,
+					u.MiddleName
+				FROM tbl_SnapshotUser u
+				WHERE u.UserID = snap.UserID
+				ORDER BY u.UserID
+			) userdet
+			
+			OUTER APPLY (
+				SELECT TOP 1
+					[snap_id]
+				FROM [tbl_SnapshotSB] u
+				WHERE u.[snap_id] = snap.[snap_id]
+				ORDER BY u.snap_id
+			) score
+			
+			WHERE dr.IsQual = '0' AND snap.pubpos_id = ?
+
+			ORDER BY sbr.[avg_points] DESC
+		",
+			"Select",
+			array(intval($datavalue))
+		);
+		
+		
+			
+		}else{
+		$fetchapplicants = execsqlSRS(
+			"
+			SELECT
+				snap.snap_id,
+				snap.UserID,
+				userdet.LastName,
+				userdet.FirstName,
+				userdet.MiddleName,
+				snap.AppliedDate,
+				score.snap_id AS scored,
+				SUM(sbb.score) as sumscore
+			FROM tbl_Snapshot snap
+			LEFT JOIN [tbl_SnapshotDelRem] dr ON dr.snap_id = snap.snap_id
+			LEFT JOIN [tbl_SnapshotSB] sbb ON sbb.[snap_id] = snap.[snap_id] AND sbb.commmitte_id = '$UserID'
+			
+			OUTER APPLY (
+				SELECT TOP 1
+					u.LastName,
+					u.FirstName,
+					u.MiddleName
+				FROM tbl_SnapshotUser u
+				WHERE u.UserID = snap.UserID
+				ORDER BY u.UserID
+			) userdet
+			
+			OUTER APPLY (
+				SELECT TOP 1
+					[snap_id]
+				FROM [tbl_SnapshotSB] u
+				WHERE u.[snap_id] = snap.[snap_id] AND u.commmitte_id = '$UserID'
+				ORDER BY u.snap_id
+			) score
+			
+			
+			WHERE dr.IsQual = '0' AND snap.pubpos_id = ?
+				
+			GROUP BY snap.snap_id, snap.UserID,userdet.LastName,
+				userdet.FirstName,
+				userdet.MiddleName,snap.AppliedDate, score.snap_id
+			ORDER BY sumscore DESC
+		",
+			"Select",
+			array(intval($datavalue))
+		);
+		
+		}
+		
+		$fetchposition = execsqlSRS("
+            SELECT  pos.[pubpos_id]
+                    ,pos.[position_title]
+            FROM [tbl_PublicationPosition] pos
+
+            WHERE pos.[pubpos_id] = ?
+            ", "Select", array(intval($datavalue)));
+
+		$totalApplicants = count($fetchapplicants);
+		
+	
+		//Ready for Type of Job NonTeaching or Faculty
+		$jobtype = $fetchapplicants[0]["job_type"] ?? "";
+		
+		if($jobtype == 1){
+			
+		}else{
+			//Add Structure for Faculty
+		}
+		
+		
+		echo "<div class='card border border-success'>";
+
+		echo "<div class='card-body p-0 table-responsive'>";
+		
+		$interviewpoints = $_POST["interviewpoints"] ?? 20;
+		$interview = $interviewpoints / 100;
+		
+		
+		echo "<label class='m-2'>II. Interview ($interviewpoints%)</label>";
+	//	echo "<button class='m-2 btn-info' id='changeinterviewval'>Change criteria value</button>";
+		// Get parent criteria
+		$parents = execsqlSRS("
+			SELECT col_id, rating_col, max_value
+			FROM tbl_SnapshotSBCol
+			WHERE mothercol_id = 0
+			AND IsActive = 0
+			ORDER BY col_id
+		", "SELECT", array());
+
+		echo "<table class='table table-bordered'>";
+		echo "<thead class='table-success'>";
+
+		// First Header Row
+		echo "<tr>";
+		echo "<th rowspan='2' style='align-content: center; text-align: center;'>Name of Applicants</th>";
+
+		foreach($parents as $parent){
+
+			// Count children
+			$children = execsqlSRS("
+				SELECT col_id, rating_col, max_value
+				FROM tbl_SnapshotSBCol
+				WHERE mothercol_id = '".$parent['col_id']."'
+				AND IsActive = 0
+				ORDER BY col_id
+			", "SELECT", array());
+
+			$colspan = count($children);
+
+			echo "<th colspan='$colspan' class='text-center'  style='align-content: center; text-align: center;'>";
+			echo $parent['rating_col']." (".$parent['max_value']." points)";
+			echo "</th>";
+		}
+
+		echo "<th rowspan='2' style='align-content: center; text-align: center;'>Total</th>";
+		echo "<th rowspan='2' style='align-content: center; text-align: center;'>Weighted Points</th>";
+		echo "</tr>";
+
+
+		// Second Header Row
+		echo "<tr>";
+
+		foreach($parents as $parent){
+
+			$children = execsqlSRS("
+				SELECT col_id, rating_col, max_value
+				FROM tbl_SnapshotSBCol
+				WHERE mothercol_id = '".$parent['col_id']."'
+				AND IsActive = 0
+				ORDER BY col_id
+			", "SELECT", array());
+
+			foreach($children as $child){
+				echo "<th  style='align-content: center; text-align: center;'>";
+				echo $child['rating_col']."<br><small>(".$child['max_value']." points)</small>";
+				echo "</th>";
+			}
+		}
+
+		echo "</tr>";
+
+		echo "</thead>";
+		echo "<tbody>";
+		
+		
+		foreach ($fetchapplicants as $app) {
+
+				$snap_id = htmlspecialchars($app["snap_id"] ?? '');
+				$userid = htmlspecialchars($app["UserID"] ?? '');
+				$scored = htmlspecialchars($app["scored"] ?? '');
+				$lastname = htmlspecialchars($app["LastName"] ?? '');
+				$firstname = htmlspecialchars($app["FirstName"] ?? '');
+				$middlename = htmlspecialchars($app["MiddleName"] ?? '');
+				
+				$fullname = trim($firstname . " " . $middlename . " " . $lastname);
+
+				
+				echo "<tr  
+				  >";
+				
+				echo "<td 
+				id='attachmentreviewer_" . htmlspecialchars($app['snap_id']) . "'
+					  data-datavalue='" . htmlspecialchars($app['snap_id']) . "'
+					  data-pubposid='" . $datavalue . "'
+					  data-userid='" . htmlspecialchars($app['UserID']) . "'
+					  data-title='" .$title. "'
+					  data-openmodallabel='" . htmlspecialchars($fullname) . "'
+				
+				class='font-weight-bold'>$fullname</td>";
+
+				
+				if($scored == "" || $scored == null){
+					echo "<td><span class='badge badge-danger p-2'>No Score Yet</span></td>";
+				}else if($RID <= 3){
+					
+				$total = floatval(0);
+				
+				$grades = execsqlSRS("SELECT  sb.[snap_id], sbc.rating_col, CAST(AVG(CAST(sb.score AS DECIMAL(10,2))) AS DECIMAL(10,1))  as points, sbc.col_id FROM tbl_SnapshotSB sb
+									LEFT JOIN [tbl_SnapshotSBCol] sbc ON sbc.col_id = sb.col_id
+									WHERE sb.snap_id = '$snap_id'
+									GROUP BY sb.[snap_id], sbc.rating_col, sbc.col_id 
+									ORDER BY sbc.col_id", "SELECT", []);		
+					
+				foreach($grades as $g){
+					$rating_col = $g["rating_col"] ?? "";
+					$points = $g["points"] ?? "";
+			
+					echo "<td  style='align-content: center; text-align: center;'><span>".$points."</span></td>";
+					
+					$total += floatval($points);
+				}	
+					echo "<td  style='align-content: center; text-align: center;'><span>".$total."</span></td>";
+					
+				
+					echo "<td><button class='btn btn-success p-2' style='width: 100%;' id='SetCummulate'
+						  data-datavalue='" . htmlspecialchars($app['snap_id']) . "'
+						  data-pubposid='" . $datavalue . "'
+						  data-userid='" . htmlspecialchars($app['UserID']) . "'
+						  data-title='" .$title. "'
+						  data-openmodallabel='" . htmlspecialchars($fullname) . "'
+					>".$total*$interview."</button></td>";
+			
+				}
+			
+				echo "</tr>";
+
+			}
+		
+		echo "</tbody>";
+		echo "</table>";
+		
+
 		echo "</div>";
 		echo "</div>";
 		
@@ -569,12 +861,14 @@ switch ($request) {
 					  FROM [tbl_SnapshotSB] 
 					  WHERE [commmitte_id] = '$UserID' AND [snap_id] = '$datavalue'", "SELECT", array());
 			$total = $getchild3[0]["total"]	?? "";	  
-			
+		
 			echo "<div class='btn btn-info float-right m-2'
-			id='attachmentreviewer_" . $datavalue . "'
+			id='SetCummulate'
+			 data-pubposid='" . $pubposid . "'
 			data-datavalue='" . $datavalue . "'
 			data-userid='" .$UserID . "'
 			data-openmodallabel='" . $fullname . "'
+			data-title='" .$title. "'
 			>Back</div>";
 			echo "<div class='btn btn-success float-right m-2'>Total Score: ".$total."</div>";
 		
@@ -1130,4 +1424,92 @@ switch ($request) {
 	>Back to List</button>
 	</div>";
 	break;
+	
+	
+	
+	
+	
+	case "breakdownscores":
+	
+	
+	$UserID = isset($_POST["UserID"]) ? $_POST["UserID"] : "";
+	$datavalue = isset($_POST["datavalue"]) ? $_POST["datavalue"] : "";
+	
+		$gradescommitte = execsqlSRS("SELECT DISTINCT [commmitte_id], [snap_id] FROM tbl_SnapshotSB
+										WHERE snap_id = '$datavalue'", "SELECT", []);
+		echo"<span class='card'> ↓ Click the name to see breakdown results</span>";								
+		echo "<table class='table table-hover mb-0' style='width: 100%;'>";
+		echo "<thead>";
+		echo "<th style='text-align: center;'>Committee";
+		echo "</th>";	
+		echo "<th style='text-align: center;'>Score";
+		echo "</th>";	
+		/* echo "<th style='text-align: center;'>Comments / Remarks";
+		echo "</th>";	 */
+		echo "</thead>";
+		echo "<tbody>";
+			
+		$avg = 0;
+
+		if(count($gradescommitte) == 0){
+			$countnumber = 1;
+		}else{
+			$countnumber = count($gradescommitte);
+		}
+		
+		$count = $countnumber ?? 1;
+			foreach($gradescommitte as $com){
+				echo "<tr>";
+				$user = $com["commmitte_id"] ?? "";
+				$snapid = $com["snap_id"] ?? "";
+				
+				$fetchnames = execsqlSRS("SELECT CONCAT(FirstName, ' ', LastName) as FullName, UserID FROM Sys_UserAccount WHERE UserID = '$user'","SELECT",[]);		
+					
+				foreach($fetchnames as $names){
+					$FullName = $names["FullName"] ?? "";
+					$userID = $names["UserID"] ?? "";
+					
+					$getrecords = execsqlSRS("SELECT SUM(score) as total FROM tbl_SnapshotSB WHERE snap_id ='$datavalue' AND commmitte_id = '$userID'", "SELECT", []);
+					
+					/* $getcomment = execsqlSRS("SELECT TOP 1 [comments] FROM [tbl_SnapshotSBComments]
+								WHERE [commmitte_id] = '$userID' AND [snap_id] = '$datavalue'", "SELECT", []);
+				 */
+					//foreach($getcomment as $com){
+						//$comment = $com["comments"] ?? 0;
+						foreach($getrecords as $rec){
+							$total = $rec["total"] ?? 0;
+							
+							echo '<td  style="width: 33.33%; text-align:center; background: green; color: white;"
+									id="fecthbreakdown" data-committeid ='.$user.' 
+									data-fullname="'.$fullname.'"
+									data-pubposid="'.$pubposid.'"
+									data-title="' .$title. '"
+									data-datavalue ='.$snapid.' >'.$FullName. '</td>';
+							echo '<td  style="width: 33.33%; text-align:center;">'.$total. '</td>';
+						//	echo '<td  style="width: 33.33%; text-align:center;">'.$comment. '</td>';
+						}
+					//}
+					
+				}
+				$avg += $total;
+				
+				echo "</tr>";
+			
+			}
+		
+		echo "</tbody>";
+		echo "</table>";
+		
+		echo "
+		<div>
+		<button class='btn btn-info float-right m-2' id='backList'
+		data-datavalue='$pubposid'
+		data-title='$title'
+		
+		>Back to List</button>
+		</div>";
+		
+		
+		echo "<div class='btn btn-success float-right m-2'>Total Average: ".$avg / $count."</div>";
+		
 }

@@ -53,6 +53,11 @@ include "modals.php";
     .checklist-toggle:hover {
         transform: scale(1.1);
     }
+	
+	th{
+		align-content: center; text-align: center;
+	}
+	
 </style>
 </head>
 
@@ -200,6 +205,93 @@ include "modals.php";
                 }
             });
         });
+		
+		 $(document).off('click', '[id^="SetCummulate"]').on('click', '[id^="SetCummulate"]', function(e) {
+
+            e.stopPropagation();
+
+            var fetchdata = $(this);
+			var data = {
+                    request: "breakdownscores",
+                    datavalue: fetchdata.data("datavalue"),
+					RID: UserInfo["RID"],
+					UserID: UserInfo["UserID"],
+					userid: fetchdata.data("userid"),
+					fullname: fetchdata.data('openmodallabel'), 
+					pubposid: fetchdata.data("pubposid"),
+                    title: fetchdata.data("title"),
+                };
+				console.log(data);
+            $.ajax({
+                url: "backend/bk_Ranking.php",
+                method: "POST",
+                data: data,
+                beforeSend: function() {
+                    $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+                },
+                success: function(dataResult) {
+					//console.log(dataResult);
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+
+                    $('#attachmentmodallabel').html(fetchdata.data('openmodallabel'));
+                    $('#attachmentmodalcontent').html(dataResult);
+                    $('#attachmentmodal').modal('show');
+                },
+                error: function(xhr, status, error) {
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+                    console.error("Error occurred:", error);
+                }
+            });
+        });  
+
+		
+		$(document).off('click', '[id^="fecthbreakdown"]').on('click', '[id^="fecthbreakdown"]', function(e) {
+
+            e.stopPropagation();
+
+            var fetchdata = $(this).data();
+			
+			var data = {
+				UserID : fetchdata.committeid,
+				datavalue : fetchdata.datavalue,
+				title : fetchdata.title,
+				fullname : fetchdata.fullname,
+				pubposid: fetchdata.pubposid,
+				request : "viewbreakdown"
+			};
+			
+            $.ajax({
+                url: "backend/bk_Ranking.php",
+                method: "POST",
+                data: data,
+                beforeSend: function() {
+                    $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+                },
+                success: function(dataResult) {
+					//console.log(dataResult);
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+
+                    $('#attachmentmodallabel').html("Points Breakdown");
+                    $('#attachmentmodalcontent').html(dataResult);
+                    $('#attachmentmodal').modal('show');
+                },
+                error: function(xhr, status, error) {
+                    $("#loadingSpinner").fadeOut(200, function() {
+                        $("#loadingSpinner").css("display", "none");
+                    });
+                    console.error("Error occurred:", error);
+                }
+            });
+        });
+		
+   
+
 
        $(document).off('click', '[id^="attachmentreviewer_"]').on('click', '[id^="attachmentreviewer_"]', function(e) {
 
@@ -238,7 +330,7 @@ include "modals.php";
         });     
 
 
-		$(document).off('click', '[id^="SetCummulate"]').on('click', '[id^="SetCummulate"]', function(e) {
+	/* 	$(document).off('click', '[id^="SetCummulate"]').on('click', '[id^="SetCummulate"]', function(e) {
 
             e.stopPropagation();
 
@@ -273,7 +365,7 @@ include "modals.php";
                 }
             });
         });
-
+ */
 	function getFormData(formSelector) {
 		let data = {};
 		$(formSelector).find("input, select, textarea").each(function () {

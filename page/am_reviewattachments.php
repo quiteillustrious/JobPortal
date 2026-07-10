@@ -288,7 +288,7 @@ include "modals.php";
 
             e.stopPropagation();
 
-            var 1 = $(this);
+            var fetchdata = $(this);
 
             $.ajax({
                 url: "backend/bk_amreviewattachments.php",

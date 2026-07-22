@@ -474,7 +474,7 @@ switch ($request) {
     case "saveposition":
 
         // Collect inputs
-        $job_type = trim($_POST['job_type'] ?? '');
+        $job_type = $_POST['job_type'] ?? 0;
         $position_title = trim($_POST['position_title'] ?? '');
         $appoint_id     = trim($_POST['appoint_id'] ?? '');
         $sg_id          = trim($_POST['sg_id'] ?? '');
@@ -518,7 +518,7 @@ switch ($request) {
             echo json_encode(["status" => "error", "message" => "User ID is required."]);
             exit;
         }
-        if (empty($job_type)) {
+        if ($job_type == "") {
             echo json_encode(["status" => "error", "message" => "Position job type is required."]);
             exit;
         } if (empty($position_title)) {

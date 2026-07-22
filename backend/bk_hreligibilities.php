@@ -11,6 +11,8 @@ $userid = isset($_POST["userid"]) ? $_POST["userid"] : "";
 
 $currentdt = date("Y-m-d H:i:s");
 
+$selectlevel = execsqlSRS("SELECT * FROM tbl_Level WHERE IsStatus = '0'","SELECT", []);
+
 switch ($request) {
 
 	case "vieweligibilities":
@@ -18,6 +20,7 @@ switch ($request) {
 		$vieweligibilities = execsqlSRS("
 		SELECT [eligibility_id]
                 ,[eligibility_desc]
+                ,[lvl_id]
                 ,[IsActive]
 		FROM [tbl_ProfEligibilityLibrary]
 
@@ -25,11 +28,12 @@ switch ($request) {
 		"Search",
 		array()
 		);
-
+	
 			foreach ($vieweligibilities as $eligibility) {
 				echo "<tr>";
 				echo "<td>" . htmlspecialchars($eligibility["eligibility_id"]) . "</td>";
 				echo "<td>" . htmlspecialchars($eligibility["eligibility_desc"]) . "</td>";
+				echo "<td>" . htmlspecialchars($eligibility["lvl_id"]) . "</td>";
 				
 				if (htmlspecialchars($eligibility["IsActive"])){
 					$togglevar = 'off';
@@ -74,15 +78,25 @@ switch ($request) {
 	break;
 
 	case "addeligibility":
-
+	
 		echo '
 		<div class="p-3">
 		  <div class="form-group">
 			<label for="">Description</label>
 			<input type="text" class="form-control field-input" id="field1" placeholder="e.g. Primary...">
-		  </div>
-
-		  <div class="form-group">
+		  </div>';
+	
+		 echo ' <div class="form-group">
+			<label for="">Level of Eligibility</label>';
+			echo'<select " class="form-control field-input"  id="field3">';
+			foreach($selectlevel as $l){
+				echo'<option value='.$l["lvl_id"].'>'.$l["level_name"].'</option>';
+			}
+			echo'<select>';
+			
+		 echo ' </div> ';
+		  
+		echo '  <div class="form-group">
 			<label for="">Status (0/1)</label>
 			<input type="text" class="form-control field-input" id="field2" placeholder="0...">
 		  </div>
@@ -105,11 +119,14 @@ switch ($request) {
 	case "editelegibility":
 
 		$queryedit = execsqlSRS("
-			SELECT [eligibility_id]
-				  ,[eligibility_desc]
-				  ,[IsActive]
-			FROM [tbl_ProfEligibilityLibrary]
-			WHERE eligibility_id = :eligibility_id", 
+			SELECT pl.[eligibility_id]
+				  ,pl.[eligibility_desc]
+				  ,pl.[lvl_id]
+				  ,l.[level_name]
+				  ,pl.[IsActive]
+			FROM [tbl_ProfEligibilityLibrary] pl
+			LEFT JOIN [tbl_Level] l ON l.lvl_id = pl.lvl_id
+			WHERE pl.eligibility_id = :eligibility_id", 
 			"Select", [
 						":eligibility_id" => $datavalue
 					  ]); 
@@ -122,6 +139,19 @@ switch ($request) {
 					<label for=''>Description</label>
                     <input type='text' class='form-control field-input' id='field1' value='" . htmlspecialchars($edit["eligibility_desc"]) . "'>
 				  </div>";
+				  
+	   echo ' <div class="form-group">
+			<label for="">Level of Eligibility</label>';
+			echo'<select " class="form-control field-input"  id="field3">';
+			echo'<option value='.$edit["lvl_id"].'>'.$edit["level_name"].'</option>';
+			foreach($selectlevel as $l){
+				echo'<option value=' . htmlspecialchars($l["lvl_id"]) . '>'.$l["level_name"].'</option>';
+			}
+			echo'<select>';
+			
+		 echo ' </div> ';
+		 
+		 
 			echo "<div class='form-group'>
 					<label for=''>Status</label>
                     <input type='text' class='form-control field-input' id='field2' value='" . htmlspecialchars($edit["IsActive"]) . "'>
@@ -186,11 +216,12 @@ switch ($request) {
 			
 			$querysave = execsqlSRS("
 				UPDATE tbl_ProfEligibilityLibrary
-				SET eligibility_desc = :desc, IsActive = :status
+				SET eligibility_desc = :desc, IsActive = :status, lvl_id = :lvl_id
 				WHERE eligibility_id = :datavalue", 
 				"Update", [
 							":desc" => $fields["field1"], 
 							":status" => intval($fields["field2"]), 
+							":lvl_id" => intval($fields["field3"]), 
 							":datavalue" => intval($datavalue)
 						  ]);
 						  
@@ -201,10 +232,11 @@ switch ($request) {
 		else if ($operator == "add") {
 
 			$querysave = execsqlSRS("
-					INSERT INTO [tbl_ProfEligibilityLibrary] ([eligibility_desc], [IsActive])
-					VALUES (:desc, :status)", 
+					INSERT INTO [tbl_ProfEligibilityLibrary] ([eligibility_desc],[lvl_id], [IsActive])
+					VALUES (:desc, :lvl_id, :status)", 
 					"Insert", [
 								":desc" => $fields["field1"], 
+								":lvl_id" => intval($fields["field3"]),
 								":status" => intval($fields["field2"])
 							  ]);
 

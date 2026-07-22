@@ -802,8 +802,9 @@ switch ($request) {
 					<div class="card-title ml-3 mt-3 mb-3 mr-3">
 						<i class="fa-solid fa-circle-question text-info"></i>
 							<span class="font-weight-bold text-info">Directions:</span>
-							<span>Please fill in the required information <span class="text-danger">*</span> for your eligibility details. File Attachments should not exceed 10MB in size. If your eligibility type is not in the list, click on the <button class="btn btn-info btn-sm"><i class="fa-solid fa-circle-question"></i></button> button.</span>
-					</div>
+							<span>Please fill in the required information <span class="text-danger">*</span> for your eligibility details. File Attachments should not exceed 10MB in size.</span>
+							<!-- If your eligibility type is not in the list, click on the <button class="btn btn-info btn-sm"><i class="fa-solid fa-circle-question"></i></button> button.
+				-->	</div>
 				</div>
 
 		<div class="p-3 bg-light border rounded border-success shadow" id="eligibilitydiv">
@@ -812,11 +813,11 @@ switch ($request) {
 			<div class="form-group" id="eligibility-group">
 				<label for="eligibility">
 					Eligibility Type <span class="text-danger">*</span>
-					<button class="btn btn-info btn-sm"
+				<!--	<button class="btn btn-info btn-sm"
 							data-tooltip="Eligibility not in this list?"
 							id="toggleEligibilityBtn">
 						<i class="fas fa-question-circle"></i>
-					</button>
+					</button> -->
 				</label>
 
 				<!-- Dropdown -->

@@ -352,7 +352,7 @@ switch ($request) {
             ]);
             exit;
         }
-
+		
         $u = $user[0];
 
         $missinguser = [];
@@ -390,6 +390,39 @@ switch ($request) {
 
             exit;
         }
+		
+		
+		//Check the level of eligibility ng kupal na aplikante (^-^)
+		$Level = execsqlSRS("SELECT pel.[lvl_id] FROM [tbl_PublicationPositionEligibility] ppe
+								LEFT JOIN [tbl_ProfEligibilityLibrary] pel ON pel.[eligibility_id] = ppe.[eligibility_id]
+								WHERE ppe.[pubpos_id] = :pubpos"
+		,"SELECT",[":pubpos"=>$datavalue]);
+		
+		$UserLevel = execsqlSRS("SELECT pe.[eligibility_id], pel.[lvl_id] FROM [tbl_ProfEligibility] pe
+								LEFT JOIN [tbl_ProfEligibilityLibrary] pel ON pel.[eligibility_id] = pe.[eligibility_id]
+								WHERE pe.[UserID] = :UserID"
+								,"SELECT",[":UserID"=>$userid]);
+		
+		foreach($Level as $l){ 
+		
+			 foreach($UserLevel as $u){
+				$userlvl = $u["lvl_id"];
+				$lvl = $l["lvl_id"];
+				
+				if($userlvl < $lvl){
+					echo json_encode([
+						 "status" => "info",
+						"message" => "Your Eligibility does not meet the required level or category for this position",
+					]);
+					exit;
+				}
+			 }
+		}
+		 
+		
+		
+		/*  intval($datavalue),
+            intval($userid), */
 
         $education = execsqlSRS("
             SELECT TOP 1 [UserID]

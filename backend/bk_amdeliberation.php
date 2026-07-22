@@ -647,7 +647,9 @@ switch ($request) {
             if ($decision === 1 && $remarks === '') {
                 $errors[] = "Remarks required for Disqualified Snap ID: $snap_id";
                 continue;
-            }
+            }   
+			
+		
 
             $check = execsqlSRS("
             SELECT snap_id
@@ -670,6 +672,26 @@ switch ($request) {
                 VALUES (?, ?, ?, ?, ?, ?, '0')
             ", "Insert", array($snap_id, $decision, $remarks, $currentdt, $user_id, $userid));
             }
+		
+			if ($decision === 1) {
+               $text = "We regret to inform you that your application did not qualify to the next stage";
+				//Notifications
+				$insert = execsqlSRS("INSERT INTO [tbl_Notifications]
+				([notif_title],[notif_message],[color_id],[UserID],[target_url],[IsRead],[IsActive])
+				VALUES
+				(:notif_title,:notif_message,:color_id,:UserID,:target_url,:IsRead,:IsActive)
+				","Insert",[
+				":notif_title"=>"Disqualified",
+				":notif_message"=>$text,
+				":color_id"=>3,
+				":UserID"=>$user_id,
+				":target_url"=>'applicationstatus.php',
+				":IsRead"=>'1',
+				":IsActive"=>'0',
+				]);
+				
+            }
+			
         }
 
         if (!empty($errors)) {

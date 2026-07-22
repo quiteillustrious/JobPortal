@@ -71,20 +71,21 @@ switch ($request) {
 		break;
 
 	case "fetchpositions":
-		$type = 1;
+		$type = "";
+		$params = [];
 		if($RID == 4){
 			$type = 0;
+		}else if($RID == 6){
+			$type = 1;
 		}
-		$queryselect = execsqlSRS(
-			"
-			SELECT  pos.[pubpos_id]
+		
+		$sql = "SELECT  pos.[pubpos_id]
 					,pos.[publication_id]
 					,pos.[job_type]
 					,pos.[position_title]
 					,app.[appoint_desc]
 					,c.[color_desc]
 					,office.[office_desc]
-
 			FROM [tbl_PublicationPosition] pos
 			LEFT JOIN [tbl_Publication] pub ON pub.publication_id = pos.publication_id
 			LEFT JOIN [tbl_ProfExpAppoint] app
@@ -98,11 +99,15 @@ switch ($request) {
 
 			LEFT JOIN [tbl_Office] office
 			ON office.[office_id] = pos.[office_id]
-			WHERE pub.[pubstatus_id] = '4' AND pos.job_type = '$type'
-			ORDER BY pos.position_title, pos.publication_id",
-			"Search",
-			array()
-		);
+			WHERE pub.[pubstatus_id] = '4'";
+			
+		if($type != ""){
+			$sql .= " AND pos.job_type = :type";
+			$params = [":type"=>$type];
+		}
+		$sql .= " ORDER BY pos.position_title, pos.publication_id";
+		
+		$queryselect = execsqlSRS($sql,"Search",$params);
 
 		foreach ($queryselect as $position) {
 

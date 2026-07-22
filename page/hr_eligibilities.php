@@ -69,6 +69,7 @@
                     <tr>
                       <th>ID</th>
                       <th>Description</th>
+					  <th>Level</th>
 					  <th>Status</th>
 					  <th>Action</th>
                     </tr>

@@ -13,7 +13,153 @@ $rid = isset($_POST["rid"]) ? $_POST["rid"] : "";
 $currentdt = date("Y-m-d H:i:s");
 
 switch ($request) {
+	
+	
+	case "landingjobs":
 
+	$fetchpublication = execsqlSRS("
+		SELECT
+			[publication_id],
+			[pubtitle_name],
+			[pubtitle_startdt],
+			[pubtitle_enddt]
+		FROM [tbl_Publication]
+		WHERE
+			[pubstatus_id] IN ('2', '5')
+			AND CAST(? AS DATE) BETWEEN
+				CAST([pubtitle_startdt] AS DATE)
+				AND
+				CAST([pubtitle_enddt] AS DATE)
+	", "Select", array($currentdt));
+
+
+	echo '<div class="container-fluid">
+			<div class="job-slider-wrapper">
+				<button class="job-slider-btn prev">
+					<i class="fas fa-chevron-left"></i>
+				</button>
+				<div class="job-slider-container">
+					<div class="job-slider-track">';
+					
+	$hasJobs = false;
+	if(!empty($fetchpublication)){
+		foreach($fetchpublication as $publication){
+			
+			$publication_id = $publication["publication_id"];
+			$pubtitle_enddt = date(
+				"F j, Y",
+				strtotime($publication["pubtitle_enddt"])
+			);
+
+			$fetchpositions = execsqlSRS("
+				SELECT
+					p.[pubpos_id],
+					p.[position_title],
+					a.[appoint_desc],
+					s.[sg_grade],
+					s.[sg_amount],
+					o.[office_desc]
+				FROM [tbl_PublicationPosition] p
+				LEFT JOIN [tbl_ProfExpAppoint] a
+					ON a.[appoint_id] = p.[appoint_id]
+				LEFT JOIN [tbl_SalaryGrade] s
+					ON s.[sg_id] = p.[sg_id]
+				LEFT JOIN [tbl_Office] o
+					ON o.[office_id] = p.[office_id]
+				WHERE p.[publication_id] = ?
+			", "Select", array($publication_id));
+
+			foreach($fetchpositions as $job){
+				
+				$hasJobs = true;
+				echo '
+				<div class="job-slide-item">
+					<div class="card job-card shadow-sm h-100">
+						<div class="card-header bg-white">
+							<h5 class="text-success font-weight-bold mb-1">
+								<i class="fas fa-briefcase mr-2"></i>
+								'.htmlspecialchars($job["position_title"]).'
+							</h5>
+							<small class="text-muted">
+								<i class="fas fa-building mr-1"></i>
+								'.htmlspecialchars($job["office_desc"]).'
+							</small>
+						</div>
+						<div class="card-body">
+							<p>
+								<i class="fas fa-layer-group text-success"></i>
+								Salary Grade
+								<strong class="float-right">
+									SG '.htmlspecialchars($job["sg_grade"]).'
+								</strong>
+							</p>
+
+							<p>
+								<i class="fas fa-money-bill text-success"></i>
+								Salary
+								<strong class="float-right">
+									₱'.number_format($job["sg_amount"],2).'
+								</strong>
+							</p>
+
+							<p>
+								<i class="fas fa-calendar-alt text-danger"></i>
+								Deadline
+								<strong class="float-right">
+									'.$pubtitle_enddt.'
+								</strong>
+							</p>
+
+						</div>
+
+						<div class="card-footer bg-white">
+							<button 
+								class="btn btn-outline-success btn-sm"
+								id="view_position_'.htmlspecialchars($job["pubpos_id"]).'"
+								data-datavalue="'.htmlspecialchars($job["pubpos_id"]).'"
+								data-backendurl="backend/bk_homepage.php"
+								data-backendrequest="viewpositiondetailsuser"
+								data-openmodal="#attachmentmodal"
+								data-openmodallabel="View Position - '.htmlspecialchars($job["position_title"]).'"
+								data-openmodalbody="#attachmentmodalcontent"
+								data-tooltip="View Position">
+								<i class="fas fa-eye"></i>
+								Details
+							</button>
+
+							<button 
+								class="btn btn-success btn-sm float-right"
+								id="openloginmodal">
+								<i class="fas fa-paper-plane"></i>
+								Apply
+							</button>
+
+						</div>
+					</div>
+				</div>';
+			}
+		}
+	}
+
+	if(!$hasJobs){
+	echo '<div class="alert alert-danger w-100 text-center">
+			<i class="fas fa-exclamation-circle"></i>
+			No active job postings at the moment.
+			</div>';
+	}
+	echo '</div>
+			</div>
+			<button class="job-slider-btn next">
+				<i class="fas fa-chevron-right"></i>
+			</button>
+		</div>
+	</div>';
+
+	break;
+	
+	
+	
+	
     case "fetchjobs":
 
         $fetchpublication = execsqlSRS("

@@ -1,0 +1,272 @@
+
+body {
+    font-family: "Source Sans Pro", sans-serif;
+}
+
+#contentbody {
+    background: 
+        url('../img/pattern9.jpg'), 
+        linear-gradient(135deg, #01411C 0%, #013516 45%, #001a0b 100%) !important;
+    background-blend-mode: overlay !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    background-position: center center; /* Keeps the pattern centered */
+    
+    /* Use dvh for better mobile support, fallback to 100vh */
+    min-height: 100vh;
+    min-height: 100dvh; 
+    width: 100%;
+    
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#openloginmodal {
+    transition: transform 0.3s ease;
+}
+
+#openloginmodal:hover {
+    transform: translateY(-5px);
+}
+.container-items{
+	 transition: transform 0.3s ease;
+}
+.container-items:hover {
+    transform: translateY(-5px);
+}
+
+body{
+    background:#f4f6f9;
+}
+
+.hero-circle{
+    width:280px;
+    height:280px;
+    margin:auto;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 20px 60px rgba(0,0,0,.08);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:.4s;
+}
+
+.hero-circle:hover{
+    transform:translateY(-8px) rotate(5deg);
+}
+
+.hero-icon{
+    font-size:110px;
+    color:#198754;
+}
+
+.feature-card{
+    border:none;
+    border-radius:18px;
+    transition:.3s;
+    cursor:pointer;
+}
+
+.feature-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0 15px 35px rgba(0,0,0,.12);
+
+}
+
+.feature-icon{
+
+    width:75px;
+    height:75px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    color:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:28px;
+
+    transition:.3s;
+
+}
+
+.feature-card:hover .feature-icon{
+
+    transform:scale(1.15) rotate(10deg);
+
+}
+
+.card{
+
+    border-radius:20px;
+
+}
+
+.main-footer-item{
+	padding: 20px;
+    border-top:3px solid #198754;
+	width: 100%;
+}
+
+.main-footer-item a{
+    transition:.2s;
+}
+
+.main-footer-item a:hover{
+    color:#198754 !important;
+    text-decoration:none;
+}
+
+.main-footer-item .btn{
+    width:38px;
+    height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:.25s;
+}
+
+.main-footer-item .btn:hover{
+    transform:translateY(-3px);
+}
+.job-slider-wrapper{
+
+    position:relative;
+
+    padding:20px 50px;
+
+}
+
+
+.job-slider-container{
+
+    overflow:hidden;
+
+}
+
+
+.job-slider-track{
+
+    display:flex;
+
+    transition:transform .6s ease-in-out;
+
+}
+
+
+.job-slide-item{
+
+    flex:0 0 33.333%;
+
+    padding:10px;
+
+}
+
+
+.job-card{
+
+    border-radius:18px;
+
+    transition:.3s ease;
+
+}
+
+
+.job-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 15px 35px rgba(0,0,0,.15)!important;
+
+}
+
+
+.job-card p{
+
+    background:#f8f9fa;
+
+    padding:12px;
+
+    border-radius:10px;
+
+}
+
+
+
+.job-slider-btn{
+
+    position:absolute;
+
+    top:45%;
+
+    width:45px;
+
+    height:45px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:#198754;
+
+    color:white;
+
+    z-index:10;
+
+}
+
+
+.job-slider-btn:hover{
+
+    background:#146c43;
+
+}
+
+
+
+.job-slider-btn.prev{
+
+    left:5px;
+
+}
+
+
+
+.job-slider-btn.next{
+
+    right:5px;
+
+}
+
+
+
+@media(max-width:992px){
+
+    .job-slide-item{
+
+        flex:0 0 50%;
+
+    }
+
+}
+
+
+@media(max-width:768px){
+
+    .job-slide-item{
+
+        flex:0 0 100%;
+
+    }
+
+}

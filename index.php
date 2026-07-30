@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="plugins/jqvmap/jqvmap.min.css">
   <link rel="stylesheet" href="dist/css/adminlte.min.css">
   <link rel="stylesheet" href="dist/css/taucustom.css?v=<?= filemtime('dist/css/taucustom.css'); ?>">
+  <link rel="stylesheet" href="dist/css/landingpage.css?v=<?= filemtime('dist/css/landingpage.css'); ?>">
   <link rel="stylesheet" href="plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
   <link rel="stylesheet" href="plugins/daterangepicker/daterangepicker.css">
   <link rel="stylesheet" href="plugins/summernote/summernote-bs4.min.css">
@@ -52,7 +53,7 @@
 <script src="dist/js/index.global.min.js"></script><!-- FullCalendar -->
 
 <script>
-  autocall("login", "", "");
+  autocall("landing", "", "");
 </script>
 
 </html>

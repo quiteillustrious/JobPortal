@@ -4,7 +4,7 @@
 	include "loading.php";
 ?>
 
-<div class="d-flex justify-content-center align-items-center animated-bg" style="height: 100vh; background-image: linear-gradient(#80EF80, white);">
+<div class="d-flex justify-content-center align-items-center animated-bg">
   <div class="login-box mx-2 my-5" style="max-width: 25rem; width: 100%;">
     <div class="card card-outline card-primary">
       <div class="card-header text-center" style="border: transparent;">

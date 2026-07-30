@@ -2743,6 +2743,8 @@ $(document).off('click', '[id^="view_position_"]').on('click', '[id^="view_posit
         },
         beforeSend: function() {
             $("#loadingSpinner").css("display", "flex").hide().fadeIn(200);
+			$("#landingmodal").modal("hide");
+			$("#landingmodalcontent").html("");
         },
         success: function(dataResult) {
             $("#loadingSpinner").fadeOut(200, function() {

@@ -5,7 +5,8 @@ include 'modals.php';
 ?>
 <html>
 <head>
-  
+  <style>
+  </style>
 </head>
 <body >
 <div id="contentbody">
@@ -26,70 +27,372 @@ include 'modals.php';
 		</div>
 		<div class="container-fluid py-5">
 
-		<div class="card border-0 shadow">
-
-			<div class="card-body p-5">
-
-				<div class="row align-items-center">
-
-					<div class="col-lg-7">
-
-						<span class="badge bg-success-subtle text-success mb-3 px-3 py-2">
-							<i class="fas fa-seedling me-2"></i>
-							Official Recruitment Portal
+		<div class="card card-feature border-0 shadow-lg mb-5">
+		<div class="card-body p-5">
+			<div class="row align-items-center">
+			
+				<div class="col-lg-7">
+					<span class="badge bg-success-subtle text-success px-3 py-2 mb-3">
+						<i class="fas fa-seedling me-2"></i>
+						Official Recruitment Portal
+					</span>
+					<h1 class="display-3 fw-bold mb-3">
+						Join the
+						<span class="text-success">
+							TAU Family
 						</span>
-
-						<h1 class="display-5 fw-bold text-dark">
-							Welcome to the
-							<span class="text-success">
-								Tarlac Agricultural University
-							</span>
-							Job Portal
-						</h1>
-
-						<p class="lead text-secondary mt-4">
-							Discover career opportunities, submit applications online,
-							and become part of the TAU community through a
-							transparent and efficient recruitment process.
-						</p>
-
-						<div class="d-flex mt-4">
-
-							<button class=" m-1 btn btn-success btn-lg rounded-pill px-4"
-									id="exploreJobs">
-								<i class="fas fa-search me-2"></i>
-								Explore Jobs
-							</button>
-
-							<button class=" m-1 btn btn-outline-success btn-lg rounded-pill px-4"
-									id="openloginmodal">
-								<i class="fas fa-user me-2"></i>
-								Login
-							</button>
-
-						</div>
-
+					</h1>
+					<p class="lead text-secondary">
+						Build a meaningful career at
+						<strong>Tarlac Agricultural University</strong>,
+						where innovation, excellence, and service come together.
+						Discover rewarding opportunities and become part of a
+						university committed to quality education,
+						research, community empowerment,
+						and sustainable development.
+					</p>
+					<div class="mt-4">
+						<button
+							class="btn btn-success btn-lg rounded-pill px-5 shadow-sm me-2"
+							id="exploreJobs">
+							<i class="fas fa-search me-2"></i>
+							Explore Jobs
+						</button>
+						<button
+							class="btn btn-outline-success btn-lg rounded-pill px-5"
+							id="openloginmodal">
+							<i class="fas fa-user-circle me-2"></i>
+							Applicant Login
+						</button>
 					</div>
-
-					<div class="col-lg-5 text-center">
-
-						<div class="hero-circle">
-
-							<i class="fas fa-briefcase hero-icon"></i>
-
+					<div class="row mt-5">
+						<div class="col-4">
+							<h3 class="fw-bold text-success">
+								Vision
+							</h3>
+							<small class="text-muted">
+								Global Smart University
+							</small>
 						</div>
-
+						<div class="col-4">
+							<h3 class="fw-bold text-success">
+								Mission
+							</h3>
+							<small class="text-muted">
+								Community Empowerment
+							</small>
+						</div>
+						<div class="col-4">
+							<h3 class="fw-bold text-success">
+								Quality
+							</h3>
+							<small class="text-muted">
+								Continuous Improvement
+							</small>
+						</div>
 					</div>
-
 				</div>
 
+				<div class="col-lg-5 text-center">
+					<div class="hero-circle">
+						<i class="fas fa-briefcase hero-icon"></i>
+						<div class="mt-3">
+							<i class="fas fa-seedling fa-3x text-white opacity-75"></i>
+						</div>
+					</div>
+				</div>
 			</div>
-
 		</div>
+	</div>
+
+	<div class="card card-feature border-0 shadow-lg mb-5">
+
+		<div class="card-body p-5">
+			<div class="row align-items-center">
+				<div class="col-lg-5 text-center">
+					<div class="hero-circle">
+						<i class="fas fa-globe-asia hero-icon"></i>
+						<div class="mt-3">
+							<i class="fas fa-seedling fa-3x text-white opacity-75"></i>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-7">
+					<span class="badge bg-success-subtle text-success px-3 py-2 mb-3">
+						<i class="fas fa-eye me-2"></i>
+						University Vision
+					</span>
+
+					<h2 class="display-4 fw-bold mb-4">
+						Our
+						<span class="text-success">
+							Vision
+						</span>
+					</h2>
+
+					<div class="vision-border">
+						<p class="lead mb-0">
+							<strong>Tarlac Agricultural University</strong>
+							as
+							<span class="highlight">
+								one of the leading and globally recognized
+								smart agricultural universities
+							</span>
+						</p>
+					</div>
+
+					<div class="row mt-5">
+						<div class="col-md-4 mb-3">
+							<div class="feature-box">
+								<i class="fas fa-globe fa-2x text-success mb-3"></i>
+								<h5>Global Recognition</h5>
+								<small class="text-muted">
+									Internationally competitive education
+								</small>
+							</div>
+						</div>
+
+						<div class="col-md-4 mb-3">
+							<div class="feature-box">
+								<i class="fas fa-microchip fa-2x text-success mb-3"></i>
+								<h5>Smart University</h5>
+								<small class="text-muted">
+									Technology-driven innovation
+								</small>
+							</div>
+						</div>
+						<div class="col-md-4 mb-3">
+							<div class="feature-box">
+								<i class="fas fa-seedling fa-2x text-success mb-3"></i>
+								<h5>Agricultural Excellence</h5>
+								<small class="text-muted">
+									Sustainable future through agriculture
+								</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="card card-feature border-0 shadow-lg mb-5">
+		<div class="card-body p-5">
+			<div class="row align-items-center">
+				<div class="col-lg-7 order-lg-1">
+					<span class="badge bg-success-subtle text-success px-3 py-2 mb-3">
+						<i class="fas fa-bullseye me-2"></i>
+						University Mission
+					</span>
+					<h2 class="display-4 fw-bold mb-4">
+						Our
+						<span class="text-success">
+							Mission
+						</span>
+					</h2>
+					<div class="vision-border">
+						<p class="lead mb-0">
+							<strong>Tarlac Agricultural University (TAU)</strong>
+							produces
+							<span class="highlight">
+								highly competent individuals who empower communities
+							</span>
+							through inclusive quality education,
+							impactful research,
+							responsive extension,
+							sustainable production,
+							and technology-driven good governance aimed at enhancing
+							the quality of life in society with unwavering integrity.
+						</p>
+					</div>
+
+					<div class="row mt-5">
+						<div class="col-md-6 mb-3">
+							<div class="mission-box">
+								<i class="fas fa-graduation-cap"></i>
+								<div>
+									<h5>
+										Quality Education
+									</h5>
+									<p>
+										Developing competent professionals and future leaders.
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-6 mb-3">
+							<div class="mission-box">
+								<i class="fas fa-flask"></i>
+								<div>
+									<h5>
+										Impactful Research
+									</h5>
+									<p>
+										Creating solutions through innovation.
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-6 mb-3">
+							<div class="mission-box">
+								<i class="fas fa-hands-helping"></i>
+								<div>
+									<h5>
+										Responsive Extension
+									</h5>
+									<p>
+										Empowering communities through service.
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-6 mb-3">
+							<div class="mission-box">
+								<i class="fas fa-leaf"></i>
+								<div>
+									<h5>
+										Sustainable Production
+									</h5>
+									<p>
+										Promoting responsible development.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-5 text-center order-lg-2">
+					<div class="hero-circle">
+						<i class="fas fa-bullseye hero-icon"></i>
+						<div class="mt-3">
+							<i class="fas fa-users fa-3x text-white opacity-75"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="card card-feature border-0 shadow-lg mb-5">
+
+		<div class="card-body p-5">
+			<div class="row align-items-center">
+				<div class="col-lg-5 text-center">
+					<div class="hero-circle">
+						<i class="fas fa-shield-alt hero-icon"></i>
+						<div class="mt-3">
+							<i class="fas fa-check-double fa-3x text-white opacity-75"></i>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-7">
+
+					<span class="badge bg-success-subtle text-success px-3 py-2 mb-3">
+						<i class="fas fa-award me-2"></i>
+						University Quality Policy
+					</span>
+
+					<h2 class="display-4 fw-bold mb-4">
+						Quality
+						<span class="text-success">
+							Policy
+						</span>
+					</h2>
+
+					<div class="vision-border">
+						<p class="lead mb-0">
+							<strong>
+								Tarlac Agricultural University (TAU)
+							</strong>
+							is committed to
+							<span class="highlight">
+								satisfying the expectations of its stakeholders
+							</span>
+							through the continual improvement of all its processes
+							toward the attainment of its quality strategic objectives.
+							These are anchored in
+							<strong>
+								good governance, quality instruction,
+								relevant research, responsive extension services,
+								and sustainable production
+							</strong>
+							while adhering to globally recognized quality management
+							systems and applicable statutory and regulatory requirements.
+						</p>
+					</div>
+
+					<div class="row mt-5">
+						<div class="col-md-6 mb-3">
+							<div class="quality-box">
+								<i class="fas fa-balance-scale"></i>
+								<div>
+									<h5>
+										Good Governance
+									</h5>
+									<small>
+										Promoting accountability and transparency.
+									</small>
+								</div>
+							</div>
+						</div>
+
+
+						<div class="col-md-6 mb-3">
+							<div class="quality-box">
+								<i class="fas fa-certificate"></i>
+								<div>
+									<h5>
+										Quality Management
+									</h5>
+									<small>
+										Following globally recognized standards.
+									</small>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-6 mb-3">
+							<div class="quality-box">
+								<i class="fas fa-sync-alt"></i>
+								<div>
+									<h5>
+										Continuous Improvement
+									</h5>
+									<small>
+										Enhancing processes and services.
+									</small>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6 mb-3">
+							<div class="quality-box">
+								<i class="fas fa-globe"></i>
+								<div>
+									<h5>
+										Global Standards
+									</h5>
+									<small>
+										Meeting international quality expectations.
+									</small>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	</div>
 	<div id="landingidcontent" class="card-body"></div>
-	
+	<!--
 	<div class="container-fluid mb-5">
 
 		<div class="row g-4">
@@ -192,7 +495,7 @@ include 'modals.php';
 
 		</div>
 
-	</div>
+	</div> -->
 	
 	<footer class="main-footer-item bg-white border-top mt-5">
 
